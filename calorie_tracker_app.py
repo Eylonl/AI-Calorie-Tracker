@@ -587,14 +587,14 @@ def main():
                     # Nutrition info in columns for mobile
                     col1, col2 = st.columns(2)
                     with col1:
-                        protein = st.number_input("Protein (g)", value=food.get('protein', 0), min_value=0.0, step=0.1, key=f"protein_{i}")
-                        carbs = st.number_input("Carbs (g)", value=food.get('carbs', 0), min_value=0.0, step=0.1, key=f"carbs_{i}")
-                        fat = st.number_input("Fat (g)", value=food.get('fat', 0), min_value=0.0, step=0.1, key=f"fat_{i}")
+                        protein = st.number_input("Protein (g)", value=float(food.get('protein', 0.0)), min_value=0.0, step=0.1, key=f"protein_{i}")
+                        carbs = st.number_input("Carbs (g)", value=float(food.get('carbs', 0.0)), min_value=0.0, step=0.1, key=f"carbs_{i}")
+                        fat = st.number_input("Fat (g)", value=float(food.get('fat', 0.0)), min_value=0.0, step=0.1, key=f"fat_{i}")
                     
                     with col2:
-                        fiber = st.number_input("Fiber (g)", value=food.get('fiber', 0), min_value=0.0, step=0.1, key=f"fiber_{i}")
-                        sugar = st.number_input("Sugar (g)", value=food.get('sugar', 0), min_value=0.0, step=0.1, key=f"sugar_{i}")
-                        sodium = st.number_input("Sodium (mg)", value=food.get('sodium', 0), min_value=0.0, step=0.1, key=f"sodium_{i}")
+                        fiber = st.number_input("Fiber (g)", value=float(food.get('fiber', 0.0)), min_value=0.0, step=0.1, key=f"fiber_{i}")
+                        sugar = st.number_input("Sugar (g)", value=float(food.get('sugar', 0.0)), min_value=0.0, step=0.1, key=f"sugar_{i}")
+                        sodium = st.number_input("Sodium (mg)", value=float(food.get('sodium', 0.0)), min_value=0.0, step=0.1, key=f"sodium_{i}")
                     
                     confidence = st.slider("AI Confidence %", 0, 100, food['confidence'], key=f"confidence_{i}")
                     
