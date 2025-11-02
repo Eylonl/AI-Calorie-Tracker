@@ -175,7 +175,7 @@ def analyze_food_with_openai(image, api_key):
         base64_image = encode_image(image)
         
         response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
