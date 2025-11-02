@@ -616,17 +616,186 @@ def main():
                 # Sort meals within the day by time
                 daily_meals.sort(key=lambda x: x['timestamp'])
                 
-                # Display each meal for this day
-                for meal in daily_meals:
+                # Display each meal for this day with edit/delete options
+                for meal_idx, meal in enumerate(daily_meals):
                     time_str = meal['timestamp'][11:16]  # Extract HH:MM
+                    meal_id = f"{date_str}_{meal_idx}"  # Unique identifier for this meal
+                    
                     with st.expander(f"{time_str} - {meal['meal_type']} ({meal['total_calories']:.0f} calories)"):
+                        # Display meal details
                         st.write("**Foods:**")
                         for food in meal['foods']:
                             st.write(f"- {food['name']}: {food['portion_size']} ({food['calories']} calories)")
                         if meal['notes']:
                             st.write(f"**Notes:** {meal['notes']}")
+                        
+                        # Edit/Delete buttons
+                        st.markdown("---")
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            if st.button("✏️ Edit", key=f"edit_{meal_id}", use_container_width=True):
+                                st.session_state.editing_meal = {
+                                    'meal': meal,
+                                    'date_str': date_str,
+                                    'meal_idx': meal_idx
+                                }
+                                st.rerun()
+                        
+                        with col2:
+                            if st.button("🗑️ Delete", key=f"delete_{meal_id}", use_container_width=True, type="secondary"):
+                                # Find and remove the meal from history
+                                meal_to_remove = None
+                                for i, hist_meal in enumerate(st.session_state.meal_history):
+                                    if (hist_meal['date'] == date_str and 
+                                        hist_meal['timestamp'] == meal['timestamp'] and
+                                        hist_meal['meal_type'] == meal['meal_type']):
+                                        meal_to_remove = i
+                                        break
+                                
+                                if meal_to_remove is not None:
+                                    # Remove from history
+                                    removed_meal = st.session_state.meal_history.pop(meal_to_remove)
+                                    
+                                    # Update daily totals
+                                    st.session_state.daily_totals[date_str] -= removed_meal['total_calories']
+                                    if st.session_state.daily_totals[date_str] <= 0:
+                                        del st.session_state.daily_totals[date_str]
+                                    
+                                    save_meal_history()
+                                    st.success(f"🗑️ Deleted {removed_meal['meal_type']} ({removed_meal['total_calories']} calories)")
+                                    st.rerun()
                 
                 st.divider()  # Add separator between days
+            
+            # Edit meal form (appears when editing)
+            if 'editing_meal' in st.session_state:
+                st.markdown("---")
+                st.markdown("### ✏️ Edit Meal")
+                
+                editing_data = st.session_state.editing_meal
+                meal = editing_data['meal']
+                
+                with st.form("edit_meal_form"):
+                    st.markdown(f"**Editing:** {meal['meal_type']} from {editing_data['date_str']}")
+                    
+                    # Edit meal type
+                    new_meal_type = st.selectbox("Meal Type", 
+                                               ["Breakfast", "Lunch", "Dinner", "Snack"], 
+                                               index=["Breakfast", "Lunch", "Dinner", "Snack"].index(meal['meal_type']))
+                    
+                    # Edit date
+                    current_date = datetime.fromisoformat(editing_data['date_str']).date()
+                    new_date = st.date_input("Date", value=current_date)
+                    
+                    # Edit foods
+                    st.markdown("**Edit Food Items:**")
+                    edited_foods = []
+                    total_edited_calories = 0
+                    
+                    # Initialize editing foods in session state if not exists
+                    if 'editing_foods' not in st.session_state:
+                        st.session_state.editing_foods = meal['foods'].copy()
+                    
+                    for i, food in enumerate(st.session_state.editing_foods):
+                        st.markdown(f"**Food Item {i+1}:**")
+                        col1, col2, col3 = st.columns([2, 1, 1])
+                        
+                        with col1:
+                            food_name = st.text_input("Food Name", value=food['name'], key=f"edit_name_{i}")
+                        with col2:
+                            portion_size = st.text_input("Portion", value=food['portion_size'], key=f"edit_portion_{i}")
+                        with col3:
+                            calories = st.number_input("Calories", value=food['calories'], min_value=0, key=f"edit_calories_{i}")
+                        
+                        if food_name:  # Only add if name is provided
+                            edited_foods.append({
+                                "name": food_name,
+                                "portion_size": portion_size,
+                                "calories": calories,
+                                "confidence": food.get('confidence', 100)
+                            })
+                            total_edited_calories += calories
+                    
+                    # Buttons to add/remove food items
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.form_submit_button("➕ Add Food Item"):
+                            st.session_state.editing_foods.append({
+                                "name": "",
+                                "portion_size": "1 serving",
+                                "calories": 0,
+                                "confidence": 100
+                            })
+                            st.rerun()
+                    
+                    with col2:
+                        if len(st.session_state.editing_foods) > 1:
+                            if st.form_submit_button("➖ Remove Last"):
+                                st.session_state.editing_foods.pop()
+                                st.rerun()
+                    
+                    # Edit notes
+                    new_notes = st.text_area("Notes", value=meal.get('notes', ''))
+                    
+                    # Display total
+                    if total_edited_calories > 0:
+                        st.markdown(f"### 🔥 Total Calories: **{total_edited_calories}**")
+                    
+                    # Save/Cancel buttons
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        if st.form_submit_button("✅ Save Changes", type="primary", use_container_width=True):
+                            if edited_foods and any(food['name'] for food in edited_foods):
+                                # Find the original meal in history
+                                original_date = editing_data['date_str']
+                                meal_to_edit = None
+                                
+                                for i, hist_meal in enumerate(st.session_state.meal_history):
+                                    if (hist_meal['date'] == original_date and 
+                                        hist_meal['timestamp'] == meal['timestamp'] and
+                                        hist_meal['meal_type'] == meal['meal_type']):
+                                        meal_to_edit = i
+                                        break
+                                
+                                if meal_to_edit is not None:
+                                    # Remove old calories from daily totals
+                                    st.session_state.daily_totals[original_date] -= st.session_state.meal_history[meal_to_edit]['total_calories']
+                                    if st.session_state.daily_totals[original_date] <= 0:
+                                        del st.session_state.daily_totals[original_date]
+                                    
+                                    # Update the meal
+                                    new_date_str = new_date.isoformat()
+                                    st.session_state.meal_history[meal_to_edit].update({
+                                        'date': new_date_str,
+                                        'meal_type': new_meal_type,
+                                        'foods': [food for food in edited_foods if food['name']],
+                                        'total_calories': total_edited_calories,
+                                        'notes': new_notes
+                                    })
+                                    
+                                    # Add new calories to daily totals
+                                    if new_date_str not in st.session_state.daily_totals:
+                                        st.session_state.daily_totals[new_date_str] = 0
+                                    st.session_state.daily_totals[new_date_str] += total_edited_calories
+                                    
+                                    save_meal_history()
+                                    st.success(f"✅ Meal updated! New total: {total_edited_calories} calories")
+                                    
+                                    # Clear editing state
+                                    del st.session_state.editing_meal
+                                    del st.session_state.editing_foods
+                                    st.rerun()
+                            else:
+                                st.error("Please add at least one food item with a name.")
+                    
+                    with col2:
+                        if st.form_submit_button("❌ Cancel", use_container_width=True):
+                            del st.session_state.editing_meal
+                            if 'editing_foods' in st.session_state:
+                                del st.session_state.editing_foods
+                            st.rerun()
             
             # Daily summary chart
             if st.session_state.daily_totals:
