@@ -311,7 +311,7 @@ def main():
             with col2:
                 meal_type_filter = st.selectbox("Filter by Meal Type", ["All", "Breakfast", "Lunch", "Dinner", "Snack"])
             
-            # Display meals
+            # Display meals grouped by day
             filtered_meals = st.session_state.meal_history
             
             if date_filter:
@@ -320,14 +320,41 @@ def main():
             if meal_type_filter != "All":
                 filtered_meals = [m for m in filtered_meals if m['meal_type'] == meal_type_filter]
             
-            for meal in reversed(filtered_meals):  # Show most recent first
-                with st.expander(f"{meal['date']} - {meal['meal_type']} ({meal['total_calories']:.0f} calories)"):
-                    st.write(f"**Time:** {meal['timestamp'][:19].replace('T', ' ')}")
-                    st.write("**Foods:**")
-                    for food in meal['foods']:
-                        st.write(f"- {food['name']}: {food['portion_size']} ({food['calories']} calories)")
-                    if meal['notes']:
-                        st.write(f"**Notes:** {meal['notes']}")
+            # Group meals by date
+            from collections import defaultdict
+            meals_by_date = defaultdict(list)
+            for meal in filtered_meals:
+                meals_by_date[meal['date']].append(meal)
+            
+            # Sort dates in descending order (most recent first)
+            sorted_dates = sorted(meals_by_date.keys(), reverse=True)
+            
+            for date in sorted_dates:
+                daily_meals = meals_by_date[date]
+                daily_total = sum(meal['total_calories'] for meal in daily_meals)
+                
+                # Convert date string to readable format
+                date_obj = datetime.fromisoformat(date + "T00:00:00").date()
+                readable_date = date_obj.strftime("%A, %B %d, %Y")
+                
+                # Show daily header with total calories
+                st.subheader(f"📅 {readable_date}")
+                st.metric("Daily Total", f"{daily_total:.0f} calories", delta=None)
+                
+                # Sort meals within the day by time
+                daily_meals.sort(key=lambda x: x['timestamp'])
+                
+                # Display each meal for this day
+                for meal in daily_meals:
+                    time_str = meal['timestamp'][11:16]  # Extract HH:MM
+                    with st.expander(f"{time_str} - {meal['meal_type']} ({meal['total_calories']:.0f} calories)"):
+                        st.write("**Foods:**")
+                        for food in meal['foods']:
+                            st.write(f"- {food['name']}: {food['portion_size']} ({food['calories']} calories)")
+                        if meal['notes']:
+                            st.write(f"**Notes:** {meal['notes']}")
+                
+                st.divider()  # Add separator between days
             
             # Daily summary chart
             if st.session_state.daily_totals:
