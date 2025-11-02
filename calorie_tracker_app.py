@@ -1,12 +1,12 @@
 import streamlit as st
 import openai
 from PIL import Image
-import base64
 import io
 import json
 import os
 from datetime import datetime, date
 import pandas as pd
+import hashlib
 
 # Page configuration
 st.set_page_config(
@@ -21,6 +21,8 @@ if 'meal_history' not in st.session_state:
     st.session_state.meal_history = []
 if 'daily_totals' not in st.session_state:
     st.session_state.daily_totals = {}
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
 
 def load_meal_history():
     """Load meal history from JSON file"""
@@ -143,12 +145,45 @@ def main():
     with st.sidebar:
         st.header("Settings")
         
-        # Try to get API key from secrets first (for deployment), then from user input
+        # Password protection for API key access
         api_key = None
+        
+        # Try to get API key from secrets first (for deployment)
         try:
             api_key = st.secrets["OPENAI_API_KEY"]
+            app_password = st.secrets.get("APP_PASSWORD", "calorie123")  # Default password
         except:
+            # Local development - no secrets available
+            st.warning("⚠️ Running in local mode. API key required.")
             api_key = st.text_input("OpenAI API Key", type="password", help="Enter your OpenAI API key")
+            app_password = "calorie123"  # Default password for local use
+        
+        # If we have an API key from secrets, show password protection
+        if api_key and not st.session_state.authenticated:
+            st.subheader("🔐 Enter Password")
+            password_input = st.text_input("App Password", type="password", help="Enter the app password to access")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Unlock App", type="primary"):
+                    if password_input == app_password:
+                        st.session_state.authenticated = True
+                        st.success("✅ Access granted!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect password")
+            
+            with col2:
+                if st.button("Show Hint"):
+                    st.info("💡 Default password: calorie123")
+            
+            st.stop()  # Stop execution until authenticated
+        
+        # Show logout option if authenticated
+        if st.session_state.authenticated:
+            if st.button("🔒 Lock App"):
+                st.session_state.authenticated = False
+                st.rerun()
         
         if not api_key:
             st.warning("Please enter your OpenAI API key to use the app")
