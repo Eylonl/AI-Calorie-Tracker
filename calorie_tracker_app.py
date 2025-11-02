@@ -8,13 +8,124 @@ from datetime import datetime, date
 import pandas as pd
 import hashlib
 
-# Page configuration
+# Page configuration optimized for mobile/iPhone
 st.set_page_config(
-    page_title="Calorie Tracker",
+    page_title="🍽️ Calorie Tracker",
     page_icon="🍽️",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="centered",  # Better for mobile
+    initial_sidebar_state="collapsed"  # Start collapsed on mobile
 )
+
+# iPhone PWA and mobile optimization
+st.markdown("""
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CalorieAI">
+<meta name="theme-color" content="#667eea">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍽️%3C/text%3E%3C/svg%3E">
+
+<style>
+    /* iPhone and mobile optimizations */
+    .main .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        max-width: 100%;
+    }
+    
+    /* Optimize for iPhone screen sizes */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        /* Make buttons larger for touch */
+        .stButton > button {
+            height: 3rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        /* Optimize camera input */
+        .stCamera > div {
+            border-radius: 15px;
+            border: 2px solid #ff6b6b;
+        }
+        
+        /* Better spacing for mobile */
+        .stSelectbox, .stTextInput, .stNumberInput {
+            margin-bottom: 1rem;
+        }
+        
+        /* Optimize metrics display */
+        .metric-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+            border-radius: 15px;
+            color: white;
+            margin: 0.5rem 0;
+        }
+        
+        /* Make expanders more touch-friendly */
+        .streamlit-expanderHeader {
+            font-size: 1.1rem;
+            padding: 1rem;
+        }
+        
+        /* Optimize sidebar for mobile */
+        .css-1d391kg {
+            padding-top: 1rem;
+        }
+    }
+    
+    /* iPhone specific optimizations */
+    @media (max-width: 414px) {
+        .main .block-container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        
+        /* Larger touch targets */
+        .stButton > button {
+            height: 3.5rem;
+            width: 100%;
+        }
+        
+        /* Better camera button */
+        .stCamera button {
+            height: 4rem;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+        }
+    }
+    
+    /* PWA-style header */
+    .app-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem;
+        border-radius: 0 0 20px 20px;
+        margin: -1rem -1rem 2rem -1rem;
+        color: white;
+        text-align: center;
+    }
+    
+    /* Improved cards for meal display */
+    .meal-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid #ff6b6b;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Initialize session state
 if 'meal_history' not in st.session_state:
@@ -138,8 +249,13 @@ def main():
     # Load meal history on startup
     load_meal_history()
     
-    st.title("🍽️ AI Calorie Tracker")
-    st.markdown("Take a photo of your meal and let AI estimate the calories!")
+    # iPhone-optimized header
+    st.markdown("""
+    <div class="app-header">
+        <h1 style="margin: 0; font-size: 2rem;">🍽️ AI Calorie Tracker</h1>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">📱 Snap, Analyze, Track</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Sidebar for API key and settings
     with st.sidebar:
@@ -206,18 +322,23 @@ def main():
     tab1, tab2 = st.tabs(["📸 Add Meal", "📊 History"])
     
     with tab1:
-        st.header("Add New Meal")
+        st.markdown("### 🍽️ Add New Meal")
         
-        # Meal type selection
-        meal_type = st.selectbox("Meal Type", ["Breakfast", "Lunch", "Dinner", "Snack"])
+        # Meal type selection with better mobile layout
+        st.markdown("**Select Meal Type:**")
+        meal_type = st.selectbox("", ["Breakfast", "Lunch", "Dinner", "Snack"], label_visibility="collapsed")
         
-        # Camera input
-        st.subheader("Take a Photo")
-        camera_image = st.camera_input("Take a picture of your meal")
+        # iPhone-optimized camera section
+        st.markdown("---")
+        st.markdown("### 📸 Capture Your Meal")
+        st.markdown("*Tap the camera button below to take a photo*")
         
-        # File upload as alternative
-        st.subheader("Or Upload an Image")
-        uploaded_file = st.file_uploader("Choose an image...", type=['jpg', 'jpeg', 'png'])
+        # Camera input with better mobile styling
+        camera_image = st.camera_input("📷 Take Photo", help="Works best with good lighting")
+        
+        # File upload as alternative with mobile-friendly text
+        st.markdown("**Or choose from your photos:**")
+        uploaded_file = st.file_uploader("📁 Select Image", type=['jpg', 'jpeg', 'png'], label_visibility="collapsed")
         
         # Process image
         image_to_analyze = None
@@ -227,16 +348,16 @@ def main():
             image_to_analyze = Image.open(uploaded_file)
         
         if image_to_analyze is not None:
-            # Display the image
-            col1, col2 = st.columns([1, 1])
+            # Mobile-optimized image display
+            st.markdown("---")
+            st.markdown("### 🖼️ Your Photo")
+            st.image(image_to_analyze, caption="📱 Captured meal", use_column_width=True)
             
-            with col1:
-                st.image(image_to_analyze, caption="Your meal", use_column_width=True)
-            
-            with col2:
-                if st.button("Analyze Food", type="primary"):
-                    with st.spinner("Analyzing your meal..."):
-                        analysis = analyze_food_with_openai(image_to_analyze, api_key)
+            # Large, prominent analyze button for mobile
+            st.markdown("### 🤖 AI Analysis")
+            if st.button("🔍 Analyze My Meal", type="primary", use_container_width=True):
+                with st.spinner("🧠 AI is analyzing your meal..."):
+                    analysis = analyze_food_with_openai(image_to_analyze, api_key)
                     
                     if analysis:
                         st.session_state.current_analysis = analysis
@@ -245,26 +366,25 @@ def main():
         
         # Display analysis results for confirmation
         if 'current_analysis' in st.session_state:
-            st.subheader("AI Analysis Results")
+            st.markdown("---")
+            st.markdown("### ✅ Review & Confirm")
             analysis = st.session_state.current_analysis
             
-            st.write("**Detected Foods:**")
+            st.markdown("**🍽️ AI Detected Foods:**")
             
-            # Create editable form for confirmation
+            # Mobile-optimized confirmation form
             with st.form("confirm_meal"):
                 total_calories = 0
                 confirmed_foods = []
                 
                 for i, food in enumerate(analysis['foods']):
-                    st.write(f"**{food['name']}**")
-                    col1, col2, col3 = st.columns(3)
+                    # Mobile-friendly food item display
+                    st.markdown(f"#### 🥘 {food['name']}")
                     
-                    with col1:
-                        portion = st.text_input(f"Portion Size", value=food['portion_size'], key=f"portion_{i}")
-                    with col2:
-                        calories = st.number_input(f"Calories", value=food['calories'], min_value=0, key=f"calories_{i}")
-                    with col3:
-                        confidence = st.slider(f"Confidence", 0, 100, food['confidence'], key=f"confidence_{i}")
+                    # Stack inputs vertically for mobile
+                    portion = st.text_input("Portion Size", value=food['portion_size'], key=f"portion_{i}")
+                    calories = st.number_input("Calories", value=food['calories'], min_value=0, key=f"calories_{i}")
+                    confidence = st.slider("AI Confidence %", 0, 100, food['confidence'], key=f"confidence_{i}")
                     
                     confirmed_foods.append({
                         'name': food['name'],
@@ -273,12 +393,17 @@ def main():
                         'confidence': confidence
                     })
                     total_calories += calories
+                    
+                    st.markdown("---")  # Separator between foods
                 
-                notes = st.text_area("Additional Notes", value=analysis.get('notes', ''))
+                # Notes section
+                notes = st.text_area("📝 Additional Notes (optional)", value=analysis.get('notes', ''), height=100)
                 
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.form_submit_button("Confirm & Save Meal", type="primary"):
+                # Total calories display
+                st.markdown(f"### 🔥 Total Calories: **{total_calories}**")
+                
+                # Mobile-optimized buttons
+                if st.form_submit_button("✅ Save This Meal", type="primary", use_container_width=True):
                         confirmed_meal = {
                             'foods': confirmed_foods,
                             'total_calories': total_calories,
@@ -290,13 +415,11 @@ def main():
                         del st.session_state.current_meal_type
                         st.rerun()
                 
-                with col2:
-                    if st.form_submit_button("Cancel"):
-                        del st.session_state.current_analysis
-                        del st.session_state.current_meal_type
-                        st.rerun()
-                
-                st.metric("Total Calories", f"{total_calories:.0f}")
+                # Cancel button
+                if st.form_submit_button("❌ Cancel", use_container_width=True):
+                    del st.session_state.current_analysis
+                    del st.session_state.current_meal_type
+                    st.rerun()
     
     with tab2:
         st.header("Meal History")
