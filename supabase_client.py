@@ -120,22 +120,37 @@ class SupabaseManager:
     def get_meals(self, start_date: date = None, end_date: date = None, meal_type: str = None):
         """Retrieve meals from Supabase database"""
         try:
-            query = self.client.table("meals").select("""
-                *,
-                foods (
-                    id,
-                    name,
-                    portion_size,
-                    calories,
-                    protein,
-                    carbs,
-                    fat,
-                    fiber,
-                    sugar,
-                    sodium,
-                    confidence
-                )
-            """).eq("user_id", "default_user").order("timestamp", desc=True)
+            # Try with nutrition columns first, fallback to basic if they don't exist
+            try:
+                query = self.client.table("meals").select("""
+                    *,
+                    foods (
+                        id,
+                        name,
+                        portion_size,
+                        calories,
+                        protein,
+                        carbs,
+                        fat,
+                        fiber,
+                        sugar,
+                        sodium,
+                        confidence
+                    )
+                """).eq("user_id", "default_user").order("timestamp", desc=True)
+            except Exception as e:
+                # Fallback to basic columns if nutrition columns don't exist
+                st.warning("Nutrition columns not found. Please update your database schema.")
+                query = self.client.table("meals").select("""
+                    *,
+                    foods (
+                        id,
+                        name,
+                        portion_size,
+                        calories,
+                        confidence
+                    )
+                """).eq("user_id", "default_user").order("timestamp", desc=True)
             
             # Apply filters
             if start_date:
