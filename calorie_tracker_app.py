@@ -8,6 +8,7 @@ import os
 from datetime import datetime, date
 import pandas as pd
 import hashlib
+from supabase_client import SupabaseManager
 
 # Page configuration optimized for mobile/iPhone
 st.set_page_config(
@@ -128,6 +129,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Initialize Supabase manager
+if 'supabase_manager' not in st.session_state:
+    st.session_state.supabase_manager = SupabaseManager()
+
 # Initialize session state
 if 'meal_history' not in st.session_state:
     st.session_state.meal_history = []
@@ -135,6 +140,8 @@ if 'daily_totals' not in st.session_state:
     st.session_state.daily_totals = {}
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
+if 'use_supabase' not in st.session_state:
+    st.session_state.use_supabase = st.session_state.supabase_manager.is_connected()
 
 def load_meal_history():
     """Load meal history from JSON file"""
@@ -260,7 +267,7 @@ Important:
         st.error(f"Error analyzing image: {e}")
         return None
 
-def add_meal_to_history(meal_data, meal_type):
+def add_meal_to_history(meal_data, meal_type, photo_image=None):
     """Add confirmed meal to history"""
     today = date.today().isoformat()
     
@@ -273,6 +280,29 @@ def add_meal_to_history(meal_data, meal_type):
         'notes': meal_data.get('notes', '')
     }
     
+    # Use Supabase if available
+    if st.session_state.use_supabase:
+        try:
+            # Upload photo if provided
+            photo_url = None
+            if photo_image:
+                meal_id = st.session_state.supabase_manager.upload_photo(photo_image, f"temp_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+                if meal_id:
+                    photo_url = meal_id
+            
+            # Save to Supabase
+            meal_id = st.session_state.supabase_manager.save_meal(meal_entry, photo_url)
+            if meal_id:
+                st.success("✅ Meal saved to cloud database!")
+                # Refresh data from Supabase
+                load_meals_from_supabase()
+                return
+            else:
+                st.warning("Failed to save to cloud, using local storage as backup")
+        except Exception as e:
+            st.warning(f"Cloud save failed ({e}), using local storage")
+    
+    # Fallback to local storage
     st.session_state.meal_history.append(meal_entry)
     
     # Update daily totals
@@ -282,9 +312,42 @@ def add_meal_to_history(meal_data, meal_type):
     
     save_meal_history()
 
+def load_meals_from_supabase():
+    """Load meals from Supabase database"""
+    if not st.session_state.use_supabase:
+        return
+    
+    try:
+        meals = st.session_state.supabase_manager.get_meals()
+        daily_totals = st.session_state.supabase_manager.get_daily_totals()
+        
+        # Convert Supabase format to local format
+        converted_meals = []
+        for meal in meals:
+            converted_meal = {
+                'id': meal['id'],  # Add Supabase ID for editing/deleting
+                'date': meal['date'],
+                'timestamp': meal['timestamp'],
+                'meal_type': meal['meal_type'],
+                'total_calories': meal['total_calories'],
+                'notes': meal['notes'] or '',
+                'photo_url': meal.get('photo_url'),
+                'foods': meal.get('foods', [])
+            }
+            converted_meals.append(converted_meal)
+        
+        st.session_state.meal_history = converted_meals
+        st.session_state.daily_totals = daily_totals
+        
+    except Exception as e:
+        st.error(f"Error loading meals from Supabase: {e}")
+
 def main():
     # Load meal history on startup
-    load_meal_history()
+    if st.session_state.use_supabase:
+        load_meals_from_supabase()
+    else:
+        load_meal_history()
     
     # iPhone-optimized header
     st.markdown("""
@@ -341,6 +404,15 @@ def main():
         if not api_key:
             st.warning("Please enter your OpenAI API key to use the app")
             return
+        
+        # Database status
+        st.header("Database Status")
+        if st.session_state.use_supabase:
+            st.success("☁️ Connected to Supabase Cloud")
+            st.caption("✅ Photos saved • ✅ Data persistent • ✅ Cloud backup")
+        else:
+            st.warning("📱 Using Local Storage")
+            st.caption("⚠️ No photos saved • ⚠️ Data may be lost on restart")
         
         st.header("Daily Summary")
         today = date.today().isoformat()
@@ -511,6 +583,7 @@ def main():
                     if analysis:
                         st.session_state.current_analysis = analysis
                         st.session_state.current_meal_type = meal_type
+                        st.session_state.current_image = image_to_analyze  # Store image for Supabase
                         st.rerun()
         
         # Display analysis results for confirmation
@@ -558,10 +631,16 @@ def main():
                             'total_calories': total_calories,
                             'notes': notes
                         }
-                        add_meal_to_history(confirmed_meal, st.session_state.current_meal_type)
+                        # Include photo if available
+                        photo_image = st.session_state.get('current_image')
+                        add_meal_to_history(confirmed_meal, st.session_state.current_meal_type, photo_image)
                         st.success(f"Meal saved! Total calories: {total_calories}")
+                        
+                        # Clean up session state
                         del st.session_state.current_analysis
                         del st.session_state.current_meal_type
+                        if 'current_image' in st.session_state:
+                            del st.session_state.current_image
                         st.rerun()
                 
                 # Cancel button
