@@ -44,7 +44,7 @@ st.markdown("""
     
     /* Native app-like styling */
     .stApp {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #ffffff;
         min-height: 100vh;
     }
     
