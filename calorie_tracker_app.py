@@ -182,21 +182,27 @@ def analyze_food_with_openai(image, api_key):
                     "content": [
                         {
                             "type": "text",
-                            "text": """Analyze this food image and provide a detailed breakdown. Return your response in the following JSON format:
-                            {
-                                "foods": [
-                                    {
-                                        "name": "food item name",
-                                        "portion_size": "estimated portion (e.g., '1 cup', '150g', '1 medium')",
-                                        "calories": estimated_calories_number,
-                                        "confidence": confidence_percentage
-                                    }
-                                ],
-                                "total_calories": total_estimated_calories,
-                                "notes": "any additional observations about the meal"
-                            }
-                            
-                            Be as accurate as possible with portion sizes and calorie estimates. If you're unsure, indicate lower confidence."""
+                            "text": """Analyze this food image and provide a detailed breakdown. You MUST respond with ONLY valid JSON in exactly this format, with no additional text before or after:
+
+{
+    "foods": [
+        {
+            "name": "food item name",
+            "portion_size": "estimated portion (e.g., '1 cup', '150g', '1 medium')",
+            "calories": 200,
+            "confidence": 85
+        }
+    ],
+    "total_calories": 200,
+    "notes": "any additional observations about the meal"
+}
+
+Important: 
+- Return ONLY the JSON object, no explanatory text
+- Be as accurate as possible with portion sizes and calorie estimates
+- Use realistic calorie numbers (integers only)
+- Confidence should be 0-100 (integer)
+- If you're unsure, indicate lower confidence"""
                         },
                         {
                             "type": "image_url",
@@ -210,15 +216,45 @@ def analyze_food_with_openai(image, api_key):
             max_tokens=500
         )
         
-        # Parse the JSON response
+        # Parse the JSON response with better error handling
         response_text = response.choices[0].message.content
         
-        # Extract JSON from response (in case there's extra text)
-        start_idx = response_text.find('{')
-        end_idx = response_text.rfind('}') + 1
-        json_str = response_text[start_idx:end_idx]
+        if not response_text:
+            st.error("Empty response from OpenAI")
+            return None
         
-        return json.loads(json_str)
+        # Try to extract JSON from response
+        try:
+            # First, try to parse the entire response as JSON
+            return json.loads(response_text)
+        except json.JSONDecodeError:
+            # If that fails, try to extract JSON from within the text
+            start_idx = response_text.find('{')
+            end_idx = response_text.rfind('}') + 1
+            
+            if start_idx == -1 or end_idx == 0:
+                # No JSON found, create a fallback response
+                st.warning("Could not parse AI response. Using fallback analysis.")
+                return {
+                    "foods": [
+                        {
+                            "name": "Unknown food item",
+                            "portion_size": "1 serving",
+                            "calories": 300,
+                            "confidence": 50
+                        }
+                    ],
+                    "total_calories": 300,
+                    "notes": f"AI response could not be parsed. Raw response: {response_text[:200]}..."
+                }
+            
+            json_str = response_text[start_idx:end_idx]
+            try:
+                return json.loads(json_str)
+            except json.JSONDecodeError as json_error:
+                st.error(f"JSON parsing failed: {json_error}")
+                st.error(f"Raw response: {response_text}")
+                return None
         
     except Exception as e:
         st.error(f"Error analyzing image: {e}")
