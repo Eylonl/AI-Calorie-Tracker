@@ -361,11 +361,11 @@ def main():
         # Get API key from secrets or user input
         api_key = None
         
-        # Try to get API key from secrets first (for deployment)
+        # Get API key from Streamlit secrets
         try:
             api_key = st.secrets["OPENAI_API_KEY"]
         except:
-            # Local development - no secrets available
+            # Local development fallback
             st.warning("⚠️ Running in local mode. API key required.")
             api_key = st.text_input("OpenAI API Key", type="password", help="Enter your OpenAI API key")
         
