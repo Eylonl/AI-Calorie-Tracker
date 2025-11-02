@@ -329,12 +329,12 @@ def main():
             # Sort dates in descending order (most recent first)
             sorted_dates = sorted(meals_by_date.keys(), reverse=True)
             
-            for date in sorted_dates:
-                daily_meals = meals_by_date[date]
+            for date_str in sorted_dates:
+                daily_meals = meals_by_date[date_str]
                 daily_total = sum(meal['total_calories'] for meal in daily_meals)
                 
                 # Convert date string to readable format
-                date_obj = datetime.fromisoformat(date + "T00:00:00").date()
+                date_obj = datetime.fromisoformat(date_str + "T00:00:00").date()
                 readable_date = date_obj.strftime("%A, %B %d, %Y")
                 
                 # Show daily header with total calories
