@@ -20,11 +20,12 @@ st.set_page_config(
 
 # iPhone PWA and mobile optimization
 st.markdown("""
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CalorieAI">
-<meta name="theme-color" content="#667eea">
+<meta name="apple-mobile-web-app-title" content="Calorie Tracker">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ff6b6b">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍽️%3C/text%3E%3C/svg%3E">
 
@@ -34,6 +35,27 @@ st.markdown("""
         padding-top: 1rem;
         padding-bottom: 1rem;
         max-width: 100%;
+    }
+    
+    /* Hide Streamlit branding for app-like feel */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Native app-like styling */
+    .stApp {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    
+    /* Safe area for iPhone notch */
+    @supports (padding: max(0px)) {
+        .main .block-container {
+            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
     }
     
     /* Optimize for iPhone screen sizes */
