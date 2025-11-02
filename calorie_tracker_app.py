@@ -776,9 +776,6 @@ def main():
                 editing_data = st.session_state.editing_meal
                 meal = editing_data['meal']
                 
-                # Debug info
-                st.write("Debug: Editing meal data:", meal)
-                
                 with st.form("edit_meal_form"):
                     st.markdown(f"**Editing:** {meal['meal_type']} from {editing_data['date_str']}")
                     
@@ -804,9 +801,6 @@ def main():
                             st.session_state.editing_foods = foods.copy()
                         else:
                             st.session_state.editing_foods = []
-                    
-                    # Debug foods data
-                    st.write("Debug: Foods data:", st.session_state.editing_foods)
                     
                     for i, food in enumerate(st.session_state.editing_foods):
                         st.markdown(f"**Food Item {i+1}:**")
