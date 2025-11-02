@@ -377,6 +377,118 @@ def main():
         st.markdown("**Or choose from your photos:**")
         uploaded_file = st.file_uploader("📁 Select Image", type=['jpg', 'jpeg', 'png'], label_visibility="collapsed")
         
+        # Manual entry option
+        st.markdown("---")
+        st.markdown("### ✏️ Manual Entry")
+        st.markdown("*No photo? Enter your meal details manually*")
+        
+        if st.button("📝 Add Meal Manually", use_container_width=True):
+            st.session_state.show_manual_entry = True
+            st.rerun()
+        
+        # Manual entry form
+        if st.session_state.get('show_manual_entry', False):
+            st.markdown("#### 🍽️ Enter Meal Details")
+            
+            with st.form("manual_meal_entry"):
+                # Date selection
+                meal_date = st.date_input("📅 Meal Date", value=date.today())
+                
+                # Manual food entry
+                st.markdown("**Add Food Items:**")
+                
+                # Initialize manual foods in session state
+                if 'manual_foods' not in st.session_state:
+                    st.session_state.manual_foods = [{"name": "", "portion": "", "calories": 0}]
+                
+                manual_foods = []
+                total_manual_calories = 0
+                
+                for i in range(len(st.session_state.manual_foods)):
+                    st.markdown(f"**Food Item {i+1}:**")
+                    col1, col2, col3 = st.columns([2, 1, 1])
+                    
+                    with col1:
+                        food_name = st.text_input("Food Name", key=f"manual_name_{i}", placeholder="e.g., Grilled Chicken")
+                    with col2:
+                        portion_size = st.text_input("Portion", key=f"manual_portion_{i}", placeholder="e.g., 150g")
+                    with col3:
+                        calories = st.number_input("Calories", min_value=0, key=f"manual_calories_{i}", value=0)
+                    
+                    if food_name:  # Only add if name is provided
+                        manual_foods.append({
+                            "name": food_name,
+                            "portion_size": portion_size or "1 serving",
+                            "calories": calories,
+                            "confidence": 100  # Manual entry is 100% confident
+                        })
+                        total_manual_calories += calories
+                
+                # Buttons to add/remove food items
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.form_submit_button("➕ Add Food Item"):
+                        st.session_state.manual_foods.append({"name": "", "portion": "", "calories": 0})
+                        st.rerun()
+                
+                with col2:
+                    if len(st.session_state.manual_foods) > 1:
+                        if st.form_submit_button("➖ Remove Last"):
+                            st.session_state.manual_foods.pop()
+                            st.rerun()
+                
+                # Notes
+                manual_notes = st.text_area("📝 Notes (optional)", placeholder="Any additional details about the meal...")
+                
+                # Display total
+                if total_manual_calories > 0:
+                    st.markdown(f"### 🔥 Total Calories: **{total_manual_calories}**")
+                
+                # Save button
+                if st.form_submit_button("✅ Save Manual Entry", type="primary", use_container_width=True):
+                    if manual_foods and any(food['name'] for food in manual_foods):
+                        # Create meal data structure
+                        manual_meal_data = {
+                            'foods': [food for food in manual_foods if food['name']],  # Filter out empty entries
+                            'total_calories': total_manual_calories,
+                            'notes': manual_notes
+                        }
+                        
+                        # Add to history with custom date
+                        meal_entry = {
+                            'date': meal_date.isoformat(),
+                            'timestamp': datetime.now().isoformat(),
+                            'meal_type': meal_type,
+                            'foods': manual_meal_data['foods'],
+                            'total_calories': manual_meal_data['total_calories'],
+                            'notes': manual_meal_data['notes']
+                        }
+                        
+                        st.session_state.meal_history.append(meal_entry)
+                        
+                        # Update daily totals
+                        date_str = meal_date.isoformat()
+                        if date_str not in st.session_state.daily_totals:
+                            st.session_state.daily_totals[date_str] = 0
+                        st.session_state.daily_totals[date_str] += manual_meal_data['total_calories']
+                        
+                        save_meal_history()
+                        
+                        st.success(f"✅ Manual meal saved! Total calories: {total_manual_calories}")
+                        
+                        # Reset form
+                        st.session_state.manual_foods = [{"name": "", "portion": "", "calories": 0}]
+                        st.session_state.show_manual_entry = False
+                        st.rerun()
+                    else:
+                        st.error("Please add at least one food item with a name.")
+                
+                # Cancel button
+                if st.form_submit_button("❌ Cancel Manual Entry"):
+                    st.session_state.manual_foods = [{"name": "", "portion": "", "calories": 0}]
+                    st.session_state.show_manual_entry = False
+                    st.rerun()
+        
         # Process image
         image_to_analyze = None
         if camera_image is not None:
