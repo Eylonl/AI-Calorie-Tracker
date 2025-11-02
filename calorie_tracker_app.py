@@ -730,27 +730,41 @@ def main():
                         
                         with col2:
                             if st.button("🗑️ Delete", key=f"delete_{meal_id}", use_container_width=True, type="secondary"):
-                                # Find and remove the meal from history
-                                meal_to_remove = None
-                                for i, hist_meal in enumerate(st.session_state.meal_history):
-                                    if (hist_meal['date'] == date_str and 
-                                        hist_meal['timestamp'] == meal['timestamp'] and
-                                        hist_meal['meal_type'] == meal['meal_type']):
-                                        meal_to_remove = i
-                                        break
-                                
-                                if meal_to_remove is not None:
-                                    # Remove from history
-                                    removed_meal = st.session_state.meal_history.pop(meal_to_remove)
+                                # Delete from Supabase if available
+                                if st.session_state.use_supabase and meal.get('id'):
+                                    try:
+                                        success = st.session_state.supabase_manager.delete_meal(meal['id'])
+                                        if success:
+                                            st.success(f"🗑️ Deleted {meal['meal_type']} ({meal['total_calories']} calories)")
+                                            # Refresh data from Supabase
+                                            load_meals_from_supabase()
+                                            st.rerun()
+                                        else:
+                                            st.error("Failed to delete meal from cloud database")
+                                    except Exception as e:
+                                        st.error(f"Error deleting meal: {e}")
+                                else:
+                                    # Fallback to local storage deletion
+                                    meal_to_remove = None
+                                    for i, hist_meal in enumerate(st.session_state.meal_history):
+                                        if (hist_meal['date'] == date_str and 
+                                            hist_meal['timestamp'] == meal['timestamp'] and
+                                            hist_meal['meal_type'] == meal['meal_type']):
+                                            meal_to_remove = i
+                                            break
                                     
-                                    # Update daily totals
-                                    st.session_state.daily_totals[date_str] -= removed_meal['total_calories']
-                                    if st.session_state.daily_totals[date_str] <= 0:
-                                        del st.session_state.daily_totals[date_str]
-                                    
-                                    save_meal_history()
-                                    st.success(f"🗑️ Deleted {removed_meal['meal_type']} ({removed_meal['total_calories']} calories)")
-                                    st.rerun()
+                                    if meal_to_remove is not None:
+                                        # Remove from local history
+                                        removed_meal = st.session_state.meal_history.pop(meal_to_remove)
+                                        
+                                        # Update daily totals
+                                        st.session_state.daily_totals[date_str] -= removed_meal['total_calories']
+                                        if st.session_state.daily_totals[date_str] <= 0:
+                                            del st.session_state.daily_totals[date_str]
+                                        
+                                        save_meal_history()
+                                        st.success(f"🗑️ Deleted {removed_meal['meal_type']} ({removed_meal['total_calories']} calories)")
+                                        st.rerun()
                 
                 st.divider()  # Add separator between days
             
@@ -834,45 +848,70 @@ def main():
                     with col1:
                         if st.form_submit_button("✅ Save Changes", type="primary", use_container_width=True):
                             if edited_foods and any(food['name'] for food in edited_foods):
-                                # Find the original meal in history
-                                original_date = editing_data['date_str']
-                                meal_to_edit = None
-                                
-                                for i, hist_meal in enumerate(st.session_state.meal_history):
-                                    if (hist_meal['date'] == original_date and 
-                                        hist_meal['timestamp'] == meal['timestamp'] and
-                                        hist_meal['meal_type'] == meal['meal_type']):
-                                        meal_to_edit = i
-                                        break
-                                
-                                if meal_to_edit is not None:
-                                    # Remove old calories from daily totals
-                                    st.session_state.daily_totals[original_date] -= st.session_state.meal_history[meal_to_edit]['total_calories']
-                                    if st.session_state.daily_totals[original_date] <= 0:
-                                        del st.session_state.daily_totals[original_date]
+                                # Update in Supabase if available
+                                if st.session_state.use_supabase and meal.get('id'):
+                                    try:
+                                        updated_meal_data = {
+                                            'date': new_date.isoformat(),
+                                            'meal_type': new_meal_type,
+                                            'foods': [food for food in edited_foods if food['name']],
+                                            'total_calories': total_edited_calories,
+                                            'notes': new_notes
+                                        }
+                                        
+                                        success = st.session_state.supabase_manager.update_meal(meal['id'], updated_meal_data)
+                                        if success:
+                                            st.success(f"✅ Meal updated! New total: {total_edited_calories} calories")
+                                            # Refresh data from Supabase
+                                            load_meals_from_supabase()
+                                            # Clear editing state
+                                            del st.session_state.editing_meal
+                                            del st.session_state.editing_foods
+                                            st.rerun()
+                                        else:
+                                            st.error("Failed to update meal in cloud database")
+                                    except Exception as e:
+                                        st.error(f"Error updating meal: {e}")
+                                else:
+                                    # Fallback to local storage update
+                                    original_date = editing_data['date_str']
+                                    meal_to_edit = None
                                     
-                                    # Update the meal
-                                    new_date_str = new_date.isoformat()
-                                    st.session_state.meal_history[meal_to_edit].update({
-                                        'date': new_date_str,
-                                        'meal_type': new_meal_type,
-                                        'foods': [food for food in edited_foods if food['name']],
-                                        'total_calories': total_edited_calories,
-                                        'notes': new_notes
-                                    })
+                                    for i, hist_meal in enumerate(st.session_state.meal_history):
+                                        if (hist_meal['date'] == original_date and 
+                                            hist_meal['timestamp'] == meal['timestamp'] and
+                                            hist_meal['meal_type'] == meal['meal_type']):
+                                            meal_to_edit = i
+                                            break
                                     
-                                    # Add new calories to daily totals
-                                    if new_date_str not in st.session_state.daily_totals:
-                                        st.session_state.daily_totals[new_date_str] = 0
-                                    st.session_state.daily_totals[new_date_str] += total_edited_calories
-                                    
-                                    save_meal_history()
-                                    st.success(f"✅ Meal updated! New total: {total_edited_calories} calories")
-                                    
-                                    # Clear editing state
-                                    del st.session_state.editing_meal
-                                    del st.session_state.editing_foods
-                                    st.rerun()
+                                    if meal_to_edit is not None:
+                                        # Remove old calories from daily totals
+                                        st.session_state.daily_totals[original_date] -= st.session_state.meal_history[meal_to_edit]['total_calories']
+                                        if st.session_state.daily_totals[original_date] <= 0:
+                                            del st.session_state.daily_totals[original_date]
+                                        
+                                        # Update the meal
+                                        new_date_str = new_date.isoformat()
+                                        st.session_state.meal_history[meal_to_edit].update({
+                                            'date': new_date_str,
+                                            'meal_type': new_meal_type,
+                                            'foods': [food for food in edited_foods if food['name']],
+                                            'total_calories': total_edited_calories,
+                                            'notes': new_notes
+                                        })
+                                        
+                                        # Add new calories to daily totals
+                                        if new_date_str not in st.session_state.daily_totals:
+                                            st.session_state.daily_totals[new_date_str] = 0
+                                        st.session_state.daily_totals[new_date_str] += total_edited_calories
+                                        
+                                        save_meal_history()
+                                        st.success(f"✅ Meal updated! New total: {total_edited_calories} calories")
+                                        
+                                        # Clear editing state
+                                        del st.session_state.editing_meal
+                                        del st.session_state.editing_foods
+                                        st.rerun()
                             else:
                                 st.error("Please add at least one food item with a name.")
                     
