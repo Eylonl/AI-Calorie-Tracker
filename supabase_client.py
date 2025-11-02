@@ -48,8 +48,14 @@ class SupabaseManager:
                 file_options={"content-type": "image/jpeg"}
             )
             
-            if response.status_code == 200:
+            # Check if upload was successful
+            if hasattr(response, 'status_code') and response.status_code == 200:
                 # Get public URL
+                photo_url = self.client.storage.from_("meal-photos").get_public_url(filename)
+                return photo_url
+            elif not hasattr(response, 'status_code'):
+                # Supabase Python client returns different response format
+                # If no error, assume success and get public URL
                 photo_url = self.client.storage.from_("meal-photos").get_public_url(filename)
                 return photo_url
             else:

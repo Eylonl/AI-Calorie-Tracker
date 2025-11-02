@@ -286,9 +286,8 @@ def add_meal_to_history(meal_data, meal_type, photo_image=None):
             # Upload photo if provided
             photo_url = None
             if photo_image:
-                meal_id = st.session_state.supabase_manager.upload_photo(photo_image, f"temp_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-                if meal_id:
-                    photo_url = meal_id
+                temp_meal_id = f"temp_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                photo_url = st.session_state.supabase_manager.upload_photo(photo_image, temp_meal_id)
             
             # Save to Supabase
             meal_id = st.session_state.supabase_manager.save_meal(meal_entry, photo_url)
@@ -701,12 +700,20 @@ def main():
                     meal_id = f"{date_str}_{meal_idx}"  # Unique identifier for this meal
                     
                     with st.expander(f"{time_str} - {meal['meal_type']} ({meal['total_calories']:.0f} calories)"):
+                        # Display photo if available
+                        if meal.get('photo_url'):
+                            st.markdown("**📸 Meal Photo:**")
+                            try:
+                                st.image(meal['photo_url'], caption=f"{meal['meal_type']} photo", use_column_width=True)
+                            except Exception as e:
+                                st.caption("📷 Photo unavailable")
+                        
                         # Display meal details
-                        st.write("**Foods:**")
+                        st.write("**🍽️ Foods:**")
                         for food in meal['foods']:
                             st.write(f"- {food['name']}: {food['portion_size']} ({food['calories']} calories)")
                         if meal['notes']:
-                            st.write(f"**Notes:** {meal['notes']}")
+                            st.write(f"**📝 Notes:** {meal['notes']}")
                         
                         # Edit/Delete buttons
                         st.markdown("---")
