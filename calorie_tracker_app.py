@@ -187,7 +187,7 @@ def analyze_food_with_openai(image, api_key):
                     "content": [
                         {
                             "type": "text",
-                            "text": """Analyze this food image and provide a detailed breakdown. You MUST respond with ONLY valid JSON in exactly this format, with no additional text before or after:
+                            "text": """Analyze this food image and provide a detailed nutritional breakdown. You MUST respond with ONLY valid JSON in exactly this format, with no additional text before or after:
 
 {
     "foods": [
@@ -195,6 +195,12 @@ def analyze_food_with_openai(image, api_key):
             "name": "food item name",
             "portion_size": "estimated portion (e.g., '1 cup', '150g', '1 medium')",
             "calories": 200,
+            "protein": 15.5,
+            "carbs": 25.0,
+            "fat": 8.0,
+            "fiber": 3.0,
+            "sugar": 5.0,
+            "sodium": 150.0,
             "confidence": 85
         }
     ],
@@ -204,9 +210,12 @@ def analyze_food_with_openai(image, api_key):
 
 Important: 
 - Return ONLY the JSON object, no explanatory text
-- Be as accurate as possible with portion sizes and calorie estimates
-- Use realistic calorie numbers (integers only)
+- Include ALL nutritional values: protein, carbs, fat, fiber, sugar (in grams), sodium (in mg)
+- Be as accurate as possible with portion sizes and nutritional estimates
+- Use realistic numbers with decimals for nutrition (e.g., 15.5g protein)
+- Calories should be integers, nutrition can be decimals
 - Confidence should be 0-100 (integer)
+- If you're unsure about nutrition values, use reasonable estimates based on typical food composition
 - If you're unsure, indicate lower confidence"""
                         },
                         {
@@ -571,15 +580,34 @@ def main():
                     # Mobile-friendly food item display
                     st.markdown(f"#### 🥘 {food['name']}")
                     
-                    # Stack inputs vertically for mobile
+                    # Basic info
                     portion = st.text_input("Portion Size", value=food['portion_size'], key=f"portion_{i}")
                     calories = st.number_input("Calories", value=food['calories'], min_value=0, key=f"calories_{i}")
+                    
+                    # Nutrition info in columns for mobile
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        protein = st.number_input("Protein (g)", value=food.get('protein', 0), min_value=0.0, step=0.1, key=f"protein_{i}")
+                        carbs = st.number_input("Carbs (g)", value=food.get('carbs', 0), min_value=0.0, step=0.1, key=f"carbs_{i}")
+                        fat = st.number_input("Fat (g)", value=food.get('fat', 0), min_value=0.0, step=0.1, key=f"fat_{i}")
+                    
+                    with col2:
+                        fiber = st.number_input("Fiber (g)", value=food.get('fiber', 0), min_value=0.0, step=0.1, key=f"fiber_{i}")
+                        sugar = st.number_input("Sugar (g)", value=food.get('sugar', 0), min_value=0.0, step=0.1, key=f"sugar_{i}")
+                        sodium = st.number_input("Sodium (mg)", value=food.get('sodium', 0), min_value=0.0, step=0.1, key=f"sodium_{i}")
+                    
                     confidence = st.slider("AI Confidence %", 0, 100, food['confidence'], key=f"confidence_{i}")
                     
                     confirmed_foods.append({
                         'name': food['name'],
                         'portion_size': portion,
                         'calories': calories,
+                        'protein': protein,
+                        'carbs': carbs,
+                        'fat': fat,
+                        'fiber': fiber,
+                        'sugar': sugar,
+                        'sodium': sodium,
                         'confidence': confidence
                     })
                     total_calories += calories
@@ -680,7 +708,26 @@ def main():
                         # Display meal details
                         st.write("**🍽️ Foods:**")
                         for food in meal['foods']:
-                            st.write(f"- {food['name']}: {food['portion_size']} ({food['calories']} calories)")
+                            st.write(f"- **{food['name']}**: {food['portion_size']} ({food['calories']} cal)")
+                            
+                            # Show nutrition info if available
+                            nutrition_parts = []
+                            if food.get('protein', 0) > 0:
+                                nutrition_parts.append(f"Protein: {food['protein']}g")
+                            if food.get('carbs', 0) > 0:
+                                nutrition_parts.append(f"Carbs: {food['carbs']}g")
+                            if food.get('fat', 0) > 0:
+                                nutrition_parts.append(f"Fat: {food['fat']}g")
+                            if food.get('fiber', 0) > 0:
+                                nutrition_parts.append(f"Fiber: {food['fiber']}g")
+                            if food.get('sugar', 0) > 0:
+                                nutrition_parts.append(f"Sugar: {food['sugar']}g")
+                            if food.get('sodium', 0) > 0:
+                                nutrition_parts.append(f"Sodium: {food['sodium']}mg")
+                            
+                            if nutrition_parts:
+                                st.caption("  " + " • ".join(nutrition_parts))
+                        
                         if meal['notes']:
                             st.write(f"**📝 Notes:** {meal['notes']}")
                         

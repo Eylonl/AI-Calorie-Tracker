@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS public.foods (
     name TEXT NOT NULL,
     portion_size TEXT NOT NULL,
     calories INTEGER NOT NULL DEFAULT 0,
+    protein DECIMAL(8,2) DEFAULT 0,     -- grams
+    carbs DECIMAL(8,2) DEFAULT 0,       -- grams  
+    fat DECIMAL(8,2) DEFAULT 0,         -- grams
+    fiber DECIMAL(8,2) DEFAULT 0,       -- grams
+    sugar DECIMAL(8,2) DEFAULT 0,       -- grams
+    sodium DECIMAL(8,2) DEFAULT 0,      -- milligrams
     confidence INTEGER DEFAULT 100 CHECK (confidence >= 0 AND confidence <= 100),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -67,3 +73,12 @@ ON CONFLICT (id) DO NOTHING;
 -- Storage policy for meal photos
 CREATE POLICY "Allow public access to meal photos" ON storage.objects
     FOR ALL USING (bucket_id = 'meal-photos');
+
+-- Add nutrition columns to existing foods table (if they don't exist)
+ALTER TABLE public.foods 
+ADD COLUMN IF NOT EXISTS protein DECIMAL(8,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS carbs DECIMAL(8,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS fat DECIMAL(8,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS fiber DECIMAL(8,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS sugar DECIMAL(8,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS sodium DECIMAL(8,2) DEFAULT 0;

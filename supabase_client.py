@@ -96,6 +96,12 @@ class SupabaseManager:
                         "name": food["name"],
                         "portion_size": food["portion_size"],
                         "calories": food["calories"],
+                        "protein": food.get("protein", 0),
+                        "carbs": food.get("carbs", 0),
+                        "fat": food.get("fat", 0),
+                        "fiber": food.get("fiber", 0),
+                        "sugar": food.get("sugar", 0),
+                        "sodium": food.get("sodium", 0),
                         "confidence": food.get("confidence", 100)
                     })
                 
@@ -121,6 +127,12 @@ class SupabaseManager:
                     name,
                     portion_size,
                     calories,
+                    protein,
+                    carbs,
+                    fat,
+                    fiber,
+                    sugar,
+                    sodium,
                     confidence
                 )
             """).eq("user_id", "default_user").order("timestamp", desc=True)
@@ -164,6 +176,12 @@ class SupabaseManager:
                         "name": food["name"],
                         "portion_size": food["portion_size"],
                         "calories": food["calories"],
+                        "protein": food.get("protein", 0),
+                        "carbs": food.get("carbs", 0),
+                        "fat": food.get("fat", 0),
+                        "fiber": food.get("fiber", 0),
+                        "sugar": food.get("sugar", 0),
+                        "sodium": food.get("sodium", 0),
                         "confidence": food.get("confidence", 100)
                     })
                 
