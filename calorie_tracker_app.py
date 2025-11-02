@@ -1,6 +1,7 @@
 import streamlit as st
 import openai
 from PIL import Image
+import base64
 import io
 import json
 import os
