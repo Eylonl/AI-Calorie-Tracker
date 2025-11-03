@@ -837,7 +837,8 @@
         }
         
         // Manual entry functions
-        function showManualEntry(analysis = null) {
+        function showManualEntry() {
+            const analysis = currentAnalysis;
             const manualEntry = document.getElementById('manual-entry');
             manualEntry.style.display = 'block';
             
@@ -933,6 +934,9 @@
         
         
         function displayAnalysisResults(analysis) {
+            // Store analysis globally for button functions
+            currentAnalysis = analysis;
+            
             const resultDiv = document.getElementById('analysis-result');
             let foodsHTML = '';
             
@@ -960,17 +964,18 @@
                     ${foodsHTML}
                     <p><strong>Total Calories:</strong> ${analysis.total_calories}</p>
                     ${analysis.notes ? `<p><strong>Notes:</strong> ${analysis.notes}</p>` : ''}
-                    <button class="button" onclick="useAIAnalysis(${JSON.stringify(analysis)})" style="margin-top: 1rem;">
+                    <button class="button" onclick="useAIAnalysis()" style="margin-top: 1rem;">
                         ✅ Use This Analysis
                     </button>
-                    <button class="button" onclick="showManualEntry(${JSON.stringify(analysis)})" style="background: #718096;">
+                    <button class="button" onclick="showManualEntry()" style="background: #718096;">
                         ✏️ Edit Manually
                     </button>
                 </div>
             `;
         }
         
-        async function useAIAnalysis(analysis) {
+        async function useAIAnalysis() {
+            const analysis = currentAnalysis;
             if (!analysis) {
                 alert('No analysis data available');
                 return;
