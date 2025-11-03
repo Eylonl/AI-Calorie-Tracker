@@ -1585,57 +1585,147 @@
                     return;
                 }
                 
-                // Switch to Log Meal tab
-                showTab('log');
+                // Find the meal item in the DOM
+                const mealElement = document.querySelector(`button[onclick="editMeal('${mealId}')"]`).closest('.meal-item');
                 
-                // Set meal type and date
-                selectedMealType = meal.meal_type;
-                selectedMealDate = new Date(meal.date);
+                // Create inline edit form
+                const editForm = document.createElement('div');
+                editForm.className = 'inline-edit-form';
+                editForm.innerHTML = `
+                    <h3>✏️ Editing ${meal.meal_type}</h3>
+                    <div class="edit-foods">
+                        ${meal.foods.map((food, index) => `
+                            <div class="edit-food-item" style="margin: 0.5rem 0; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 4px;">
+                                <input type="text" value="${food.name}" placeholder="Food name" style="width: 100%; margin: 0.25rem 0; padding: 0.5rem;">
+                                <input type="text" value="${food.portion_size}" placeholder="Portion" style="width: 100%; margin: 0.25rem 0; padding: 0.5rem;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin: 0.25rem 0;">
+                                    <input type="number" value="${food.calories}" placeholder="Calories" style="padding: 0.5rem;">
+                                    <input type="number" value="${food.protein}" placeholder="Protein" step="0.1" style="padding: 0.5rem;">
+                                    <input type="number" value="${food.carbs}" placeholder="Carbs" step="0.1" style="padding: 0.5rem;">
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin: 0.25rem 0;">
+                                    <input type="number" value="${food.fat}" placeholder="Fat" step="0.1" style="padding: 0.5rem;">
+                                    <input type="number" value="${food.fiber}" placeholder="Fiber" step="0.1" style="padding: 0.5rem;">
+                                    <input type="number" value="${food.sodium}" placeholder="Sodium" step="0.1" style="padding: 0.5rem;">
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <textarea placeholder="Notes" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">${meal.notes || ''}</textarea>
+                    <div style="margin-top: 1rem;">
+                        <button onclick="saveInlineEdit('${mealId}')" style="background: #38a169; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; margin-right: 0.5rem;">✅ Save Changes</button>
+                        <button onclick="cancelInlineEdit('${mealId}')" style="background: #718096; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px;">❌ Cancel</button>
+                    </div>
+                `;
                 
-                // Update meal type buttons
-                const mealTypeBtns = document.querySelectorAll('.meal-type-btn');
-                if (mealTypeBtns.length > 0) {
-                    mealTypeBtns.forEach(btn => {
-                        if (btn && btn.classList) {
-                            btn.classList.remove('active');
-                            if (btn.textContent && btn.textContent.includes(meal.meal_type)) {
-                                btn.classList.add('active');
-                            }
-                        }
-                    });
-                }
-                
-                // Show manual entry form (without analysis data)
-                const manualEntry = document.getElementById('manual-entry');
-                manualEntry.style.display = 'block';
-                
-                // Clear existing food items
-                const foodItems = document.getElementById('food-items');
-                foodItems.innerHTML = '';
-                
-                // Populate with existing foods
-                if (meal.foods && meal.foods.length > 0) {
-                    meal.foods.forEach(food => {
-                        addFoodItem(food);
-                    });
-                } else {
-                    addFoodItem(); // Add empty item if no foods
-                }
-                
-                // Add notes if available
-                const notesField = document.querySelector('#manual-entry textarea');
-                if (notesField && meal.notes) {
-                    notesField.value = meal.notes;
-                }
-                
-                // Store the meal ID for updating instead of creating new
-                window.editingMealId = mealId;
-                
-                alert('✏️ Meal loaded for editing! Make your changes and save.');
+                // Store original content and replace with edit form
+                mealElement.dataset.originalContent = mealElement.innerHTML;
+                mealElement.innerHTML = '';
+                mealElement.appendChild(editForm);
                 
             } catch (error) {
                 console.error('Error editing meal:', error);
                 alert('Error loading meal for editing: ' + error.message);
+            }
+        }
+        
+        async function saveInlineEdit(mealId) {
+            if (!supabase) {
+                alert('Database not connected');
+                return;
+            }
+            
+            try {
+                const mealElement = document.querySelector(`button[onclick="saveInlineEdit('${mealId}')"]`).closest('.meal-item');
+                const editForm = mealElement.querySelector('.inline-edit-form');
+                
+                // Collect food data from inline form
+                const foodItems = editForm.querySelectorAll('.edit-food-item');
+                const foods = [];
+                let totalCalories = 0;
+                
+                foodItems.forEach(item => {
+                    const inputs = item.querySelectorAll('input');
+                    const name = inputs[0].value.trim();
+                    const portion = inputs[1].value.trim() || '1 serving';
+                    const calories = parseFloat(inputs[2].value) || 0;
+                    const protein = parseFloat(inputs[3].value) || 0;
+                    const carbs = parseFloat(inputs[4].value) || 0;
+                    const fat = parseFloat(inputs[5].value) || 0;
+                    const fiber = parseFloat(inputs[6].value) || 0;
+                    const sodium = parseFloat(inputs[7].value) || 0;
+                    
+                    if (name) {
+                        foods.push({
+                            name,
+                            portion_size: portion,
+                            calories,
+                            protein,
+                            carbs,
+                            fat,
+                            fiber,
+                            sugar: 0,
+                            sodium,
+                            confidence: 100
+                        });
+                        totalCalories += calories;
+                    }
+                });
+                
+                const notes = editForm.querySelector('textarea').value;
+                
+                // Update meal
+                const { error: mealError } = await supabase
+                    .from('meals')
+                    .update({
+                        total_calories: totalCalories,
+                        notes: notes,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', mealId);
+                
+                if (mealError) {
+                    console.error('Error updating meal:', mealError);
+                    alert('Error updating meal: ' + mealError.message);
+                    return;
+                }
+                
+                // Delete existing foods and add new ones
+                await supabase.from('foods').delete().eq('meal_id', mealId);
+                
+                const foodEntries = foods.map(food => ({
+                    ...food,
+                    meal_id: mealId
+                }));
+                
+                const { error: foodError } = await supabase
+                    .from('foods')
+                    .insert(foodEntries);
+                
+                if (foodError) {
+                    console.error('Error updating foods:', foodError);
+                    alert('Error updating food details: ' + foodError.message);
+                    return;
+                }
+                
+                alert('✅ Meal updated successfully!');
+                
+                // Refresh the meal history to show updated data
+                loadMealHistory();
+                
+            } catch (error) {
+                console.error('Error saving inline edit:', error);
+                alert('Error saving changes: ' + error.message);
+            }
+        }
+        
+        function cancelInlineEdit(mealId) {
+            const mealElement = document.querySelector(`button[onclick="cancelInlineEdit('${mealId}')"]`).closest('.meal-item');
+            
+            // Restore original content
+            if (mealElement.dataset.originalContent) {
+                mealElement.innerHTML = mealElement.dataset.originalContent;
+                delete mealElement.dataset.originalContent;
             }
         }
         
