@@ -1,5 +1,5 @@
 // Service Worker for CalorieAI PWA
-const CACHE_NAME = 'calorie-ai-v5'; // Updated version to force cache refresh
+const CACHE_NAME = 'calorie-ai-v6'; // Updated version to force cache refresh
 const urlsToCache = [
   './',
   './index.html',

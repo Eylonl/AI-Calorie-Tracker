@@ -15,7 +15,7 @@ const CONFIG = {
     VERSION: '1.0.0',
     
     // Vercel API Configuration
-    VERCEL_API_URL: 'https://ai-calorie-tracker-8vrmxdm6m-eylonls-projects.vercel.app',
+    VERCEL_API_URL: 'https://ai-calorie-tracker-git-main-eylonls-projects.vercel.app',
     
     // Features
     FEATURES: {
