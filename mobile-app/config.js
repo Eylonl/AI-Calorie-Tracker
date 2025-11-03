@@ -14,8 +14,8 @@ const CONFIG = {
     APP_NAME: 'CalorieAI',
     VERSION: '1.0.0',
     
-    // Vercel API Configuration - Use relative path for same domain
-    VERCEL_API_URL: window.location.origin,
+    // Vercel API Configuration
+    VERCEL_API_URL: 'https://ai-calorie-tracker-8vrmxdm6m-eylonls-projects.vercel.app',
     
     // Features
     FEATURES: {
