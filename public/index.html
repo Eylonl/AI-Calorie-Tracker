@@ -1329,21 +1329,21 @@
                     const today = new Date().toISOString().split('T')[0];
                     const { data: meals, error } = await supabase
                         .from('meals')
-                        .select(`
-                            total_calories,
-                            foods (protein, carbs, fat)
-                        `)
+                        .select('*')
                         .eq('user_id', 'default_user')
                         .eq('date', today);
                     
                     if (!error && meals) {
                         meals.forEach(meal => {
                             totals.calories += meal.total_calories || 0;
-                            meal.foods.forEach(food => {
-                                totals.protein += food.protein || 0;
-                                totals.carbs += food.carbs || 0;
-                                totals.fat += food.fat || 0;
-                            });
+                            // Parse foods JSON if it exists
+                            if (meal.foods && Array.isArray(meal.foods)) {
+                                meal.foods.forEach(food => {
+                                    totals.protein += food.protein || 0;
+                                    totals.carbs += food.carbs || 0;
+                                    totals.fat += food.fat || 0;
+                                });
+                            }
                         });
                     }
                 } catch (error) {
