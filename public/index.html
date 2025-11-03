@@ -827,7 +827,7 @@
         
         // Manual entry functions
         function showManualEntry() {
-            const analysis = currentAnalysis;
+            const analysis = typeof currentAnalysis !== 'undefined' ? currentAnalysis : null;
             const manualEntry = document.getElementById('manual-entry');
             manualEntry.style.display = 'block';
             
