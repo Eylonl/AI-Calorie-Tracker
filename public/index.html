@@ -1101,14 +1101,148 @@
         }
         
         // Save meal
-        function saveMeal() {
-            alert('Meal saved! 🎉');
-            // Reset form
-            document.getElementById('photo-preview').style.display = 'none';
-            document.getElementById('analyze-btn').style.display = 'none';
-            document.getElementById('ai-disabled').style.display = 'none';
-            document.getElementById('analysis-result').style.display = 'none';
-            document.getElementById('camera').value = '';
+        async function saveMeal() {
+            if (!supabase) {
+                alert('Database not connected. Please configure Supabase credentials.');
+                return;
+            }
+            
+            try {
+                // Collect food data from form
+                const foodItems = document.querySelectorAll('#food-items .food-item');
+                const foods = [];
+                let totalCalories = 0;
+                
+                foodItems.forEach(item => {
+                    const name = item.querySelector('input[placeholder="Food name"]').value;
+                    const portion = item.querySelector('input[placeholder*="Portion"]').value;
+                    const calories = parseFloat(item.querySelector('input[placeholder="Calories"]').value) || 0;
+                    const protein = parseFloat(item.querySelector('input[placeholder*="Protein"]').value) || 0;
+                    const carbs = parseFloat(item.querySelector('input[placeholder*="Carbs"]').value) || 0;
+                    const fat = parseFloat(item.querySelector('input[placeholder*="Fat"]').value) || 0;
+                    const fiber = parseFloat(item.querySelector('input[placeholder*="Fiber"]').value) || 0;
+                    const sugar = parseFloat(item.querySelector('input[placeholder*="Sugar"]').value) || 0;
+                    const sodium = parseFloat(item.querySelector('input[placeholder*="Sodium"]').value) || 0;
+                    
+                    if (name.trim()) {
+                        foods.push({
+                            name: name.trim(),
+                            portion_size: portion.trim() || '1 serving',
+                            calories,
+                            protein,
+                            carbs,
+                            fat,
+                            fiber,
+                            sugar,
+                            sodium,
+                            confidence: 100
+                        });
+                        totalCalories += calories;
+                    }
+                });
+                
+                if (foods.length === 0) {
+                    alert('Please add at least one food item');
+                    return;
+                }
+                
+                // Get notes
+                const notesField = document.querySelector('#manual-entry textarea');
+                const notes = notesField ? notesField.value : '';
+                
+                const isEditing = window.editingMealId;
+                
+                if (isEditing) {
+                    // Update existing meal
+                    const { error: mealError } = await supabase
+                        .from('meals')
+                        .update({
+                            meal_type: selectedMealType,
+                            total_calories: totalCalories,
+                            notes: notes,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', window.editingMealId);
+                    
+                    if (mealError) {
+                        console.error('Error updating meal:', mealError);
+                        alert('Error updating meal: ' + mealError.message);
+                        return;
+                    }
+                    
+                    // Delete existing foods and add new ones
+                    await supabase.from('foods').delete().eq('meal_id', window.editingMealId);
+                    
+                    const foodEntries = foods.map(food => ({
+                        ...food,
+                        meal_id: window.editingMealId
+                    }));
+                    
+                    const { error: foodError } = await supabase
+                        .from('foods')
+                        .insert(foodEntries);
+                    
+                    if (foodError) {
+                        console.error('Error updating foods:', foodError);
+                        alert('Error updating food details: ' + foodError.message);
+                        return;
+                    }
+                    
+                    alert('✅ Meal updated successfully!');
+                    window.editingMealId = null;
+                    
+                } else {
+                    // Create new meal
+                    const mealEntry = {
+                        date: selectedMealDate.toISOString().split('T')[0],
+                        timestamp: new Date().toISOString(),
+                        meal_type: selectedMealType,
+                        total_calories: totalCalories,
+                        notes: notes,
+                        user_id: 'default_user'
+                    };
+                    
+                    const { data: mealData, error: mealError } = await supabase
+                        .from('meals')
+                        .insert([mealEntry])
+                        .select();
+                    
+                    if (mealError) {
+                        console.error('Error saving meal:', mealError);
+                        alert('Error saving meal: ' + mealError.message);
+                        return;
+                    }
+                    
+                    const mealId = mealData[0].id;
+                    
+                    const foodEntries = foods.map(food => ({
+                        ...food,
+                        meal_id: mealId
+                    }));
+                    
+                    const { error: foodError } = await supabase
+                        .from('foods')
+                        .insert(foodEntries);
+                    
+                    if (foodError) {
+                        console.error('Error saving foods:', foodError);
+                        alert('Error saving food details: ' + foodError.message);
+                        return;
+                    }
+                    
+                    alert('✅ Meal saved successfully!');
+                }
+                
+                // Reset form
+                resetMealForm();
+                
+                // Refresh history if on history tab
+                loadMealHistory();
+                
+            } catch (error) {
+                console.error('Error saving meal:', error);
+                alert('Error saving meal: ' + error.message);
+            }
         }
         
         // Date navigation
@@ -1418,8 +1552,75 @@
             }
         }
         
-        function editMeal(mealId) {
-            alert('Edit functionality coming soon! Meal ID: ' + mealId);
+        async function editMeal(mealId) {
+            if (!supabase) {
+                alert('Database not connected');
+                return;
+            }
+            
+            try {
+                // Fetch the meal and its foods
+                const { data: meal, error: mealError } = await supabase
+                    .from('meals')
+                    .select(`
+                        *,
+                        foods (*)
+                    `)
+                    .eq('id', mealId)
+                    .single();
+                
+                if (mealError) {
+                    console.error('Error fetching meal:', mealError);
+                    alert('Error loading meal: ' + mealError.message);
+                    return;
+                }
+                
+                // Switch to Add tab
+                showTab('add');
+                
+                // Set meal type and date
+                selectedMealType = meal.meal_type;
+                selectedMealDate = new Date(meal.date);
+                
+                // Update meal type buttons
+                document.querySelectorAll('.meal-type-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.textContent.includes(meal.meal_type)) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                // Show manual entry form
+                showManualEntry();
+                
+                // Clear existing food items
+                const foodItems = document.getElementById('food-items');
+                foodItems.innerHTML = '';
+                
+                // Populate with existing foods
+                if (meal.foods && meal.foods.length > 0) {
+                    meal.foods.forEach(food => {
+                        addFoodItem(food);
+                    });
+                } else {
+                    addFoodItem(); // Add empty item if no foods
+                }
+                
+                // Add notes if available
+                const notesField = document.querySelector('#manual-entry textarea');
+                if (notesField && meal.notes) {
+                    notesField.value = meal.notes;
+                }
+                
+                // Store the meal ID for updating instead of creating new
+                window.editingMealId = mealId;
+                
+                alert('✏️ Meal loaded for editing! Make your changes and save.');
+                
+            } catch (error) {
+                console.error('Error editing meal:', error);
+                alert('Error loading meal for editing: ' + error.message);
+            }
         }
         
         // Analytics functions
