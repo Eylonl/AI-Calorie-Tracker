@@ -14,45 +14,12 @@
             const { action, data, requestId } = event.data;
             
             if (action === 'analyze_photo') {
-                try {
-                    // For now, return mock data since CORS is blocking us
-                    // TODO: Implement proper backend integration
-                    const mockResult = {
-                        foods: [
-                            {
-                                name: "Delicious Meal",
-                                portion_size: "1 serving",
-                                calories: 420,
-                                protein: 25,
-                                carbs: 35,
-                                fat: 18,
-                                fiber: 4,
-                                sugar: 8,
-                                sodium: 320,
-                                confidence: 85
-                            }
-                        ],
-                        total_calories: 420,
-                        notes: "AI analysis temporarily unavailable - using estimated values"
-                    };
-                    
-                    // Simulate API delay
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    
-                    // Send result back to PWA
-                    event.source.postMessage({
-                        requestId: requestId,
-                        success: true,
-                        data: mockResult
-                    }, event.origin);
-                } catch (error) {
-                    // Send error back to PWA
-                    event.source.postMessage({
-                        requestId: requestId,
-                        success: false,
-                        error: error.message
-                    }, event.origin);
-                }
+                // AI analysis not available - return error
+                event.source.postMessage({
+                    requestId: requestId,
+                    success: false,
+                    error: "AI photo analysis not available. Please enter meal details manually."
+                }, event.origin);
             }
         });
         

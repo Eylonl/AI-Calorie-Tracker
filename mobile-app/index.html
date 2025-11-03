@@ -841,58 +841,18 @@
             resultDiv.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
-                    Analyzing your photo with AI...<br>
-                    <small>This may take a moment</small>
                 </div>
             `;
             
-            if (window.CONFIG && window.CONFIG.FEATURES.AI_ANALYSIS_ENABLED) {
-                try {
-                    // Convert image to base64
-                    const base64Image = await convertImageToBase64(currentPhoto);
-                    
-                    // Call OpenAI API
-                    const analysis = await callOpenAIVision(base64Image);
-                    
-                    displayAnalysisResults(analysis);
-                } catch (error) {
-                    console.error('AI analysis error:', error);
-                    displayMockAnalysis();
-                }
-            } else {
-                // Mock analysis for demo
-                setTimeout(() => {
-                    displayMockAnalysis();
-                }, 2000);
-            }
-        }
-        
-        function displayMockAnalysis() {
-            const resultDiv = document.getElementById('analysis-result');
+            // AI analysis is disabled - show manual entry message
             resultDiv.innerHTML = `
-                <div class="card">
-                    <h3>🤖 AI Analysis Results</h3>
-                    <div class="meal-item">
-                        <h4>Grilled Chicken Salad</h4>
-                        <p><strong>Calories:</strong> 350</p>
-                        <div class="nutrition-info">
-                            <div>Protein: 28g</div>
-                            <div>Carbs: 12g</div>
-                            <div>Fat: 18g</div>
-                            <div>Fiber: 6g</div>
-                            <div>Sugar: 8g</div>
-                            <div>Sodium: 420mg</div>
-                        </div>
-                        <button class="button" onclick="useAIAnalysis()" style="margin-top: 1rem;">
-                            ✅ Use This Analysis
-                        </button>
-                        <button class="button" onclick="showManualEntry()" style="background: #718096;">
-                            ✏️ Edit Manually
-                        </button>
-                    </div>
+                <div class="error">
+                    <p>🤖 AI photo analysis not available</p>
+                    <p>Please enter meal details manually below.</p>
                 </div>
             `;
         }
+        
         
         function displayAnalysisResults(analysis) {
             const resultDiv = document.getElementById('analysis-result');
@@ -952,94 +912,8 @@
         }
         
         async function callOpenAIVision(base64Image) {
-            if (window.CONFIG.FEATURES.USE_BACKEND_API && window.CONFIG.FEATURES.AI_ANALYSIS_ENABLED) {
-                try {
-                    // Use iframe proxy to avoid CORS issues
-                    const analysis = await callAPIViaProxy('analyze_photo', { imageData: base64Image });
-                    
-                    if (analysis.error) {
-                        throw new Error(analysis.error);
-                    }
-                    
-                    return analysis;
-                } catch (error) {
-                    console.error('Backend AI analysis failed:', error);
-                    // Fall back to mock data
-                    return getMockAnalysis();
-                }
-            } else {
-                // Use mock data
-                return getMockAnalysis();
-            }
-        }
-        
-        // API proxy using iframe to avoid CORS
-        function callAPIViaProxy(action, data) {
-            return new Promise((resolve, reject) => {
-                // Create hidden iframe for API proxy
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = './api-proxy.html';
-                
-                const requestId = Date.now().toString();
-                
-                // Listen for response
-                const messageHandler = (event) => {
-                    if (event.data.requestId === requestId) {
-                        window.removeEventListener('message', messageHandler);
-                        document.body.removeChild(iframe);
-                        
-                        if (event.data.success) {
-                            resolve(event.data.data);
-                        } else {
-                            reject(new Error(event.data.error));
-                        }
-                    }
-                };
-                
-                window.addEventListener('message', messageHandler);
-                
-                // Add iframe and send request
-                document.body.appendChild(iframe);
-                
-                iframe.onload = () => {
-                    iframe.contentWindow.postMessage({
-                        action: action,
-                        data: data,
-                        requestId: requestId
-                    }, '*');
-                };
-                
-                // Timeout after 30 seconds
-                setTimeout(() => {
-                    window.removeEventListener('message', messageHandler);
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
-                    reject(new Error('API request timeout'));
-                }, 30000);
-            });
-        }
-        
-        function getMockAnalysis() {
-            return {
-                foods: [
-                    {
-                        name: "Grilled Chicken Salad",
-                        portion_size: "1 large bowl",
-                        calories: 350,
-                        protein: 28,
-                        carbs: 12,
-                        fat: 18,
-                        fiber: 6,
-                        sugar: 8,
-                        sodium: 420,
-                        confidence: 85
-                    }
-                ],
-                total_calories: 350,
-                notes: "Healthy salad with grilled chicken, mixed greens, and light dressing"
-            };
+            // AI analysis not available - throw error
+            throw new Error("AI photo analysis not available. Please enter meal details manually.");
         }
         
         // Save meal
@@ -1117,32 +991,19 @@
             `;
             
             if (!supabase) {
-                // Fallback to mock data if Supabase not available
-                loadMockMealHistory();
+                historyDiv.innerHTML = '<p>Database not connected. Please configure Supabase credentials.</p>';
+                dailyCaloriesSpan.textContent = '0';
                 return;
             }
             
             try {
                 const dateStr = currentDate.toISOString().split('T')[0];
                 
-                // Query meals for the selected date
                 const { data: meals, error } = await supabase
                     .from('meals')
                     .select(`
                         *,
-                        foods (
-                            id,
-                            name,
-                            portion_size,
-                            calories,
-                            protein,
-                            carbs,
-                            fat,
-                            fiber,
-                            sugar,
-                            sodium,
-                            confidence
-                        )
+                        foods (*)
                     `)
                     .eq('user_id', 'default_user')
                     .eq('date', dateStr)
@@ -1150,7 +1011,14 @@
                 
                 if (error) {
                     console.error('Error loading meals:', error);
-                    loadMockMealHistory();
+                    historyDiv.innerHTML = `<p>Error loading meals: ${error.message}</p>`;
+                    dailyCaloriesSpan.textContent = '0';
+                    return;
+                }
+                
+                if (!meals || meals.length === 0) {
+                    historyDiv.innerHTML = '<p>No meals logged for this date.</p>';
+                    dailyCaloriesSpan.textContent = '0';
                     return;
                 }
                 
@@ -1158,33 +1026,25 @@
                 let mealsHTML = '';
                 
                 meals.forEach(meal => {
+                    totalCalories += meal.total_calories || 0;
+                    const mealIcon = getMealIcon(meal.meal_type);
                     const mealTime = new Date(meal.timestamp).toLocaleTimeString('en-US', { 
                         hour: 'numeric', 
                         minute: '2-digit' 
                     });
                     
-                    const mealIcon = getMealIcon(meal.meal_type);
-                    totalCalories += meal.total_calories;
-                    
-                    // Calculate total nutrition
-                    let totalProtein = 0, totalCarbs = 0, totalFat = 0;
-                    meal.foods.forEach(food => {
-                        totalProtein += food.protein || 0;
-                        totalCarbs += food.carbs || 0;
-                        totalFat += food.fat || 0;
-                    });
+                    const foodsList = meal.foods.map(food => food.name).join(', ') || 'No foods listed';
                     
                     mealsHTML += `
                         <div class="meal-item">
                             <h3>${mealIcon} ${meal.meal_type} - ${mealTime}</h3>
-                            <p><strong>${meal.total_calories} calories</strong></p>
+                            <p><strong>${meal.total_calories || 0} calories</strong></p>
                             <div class="nutrition-info">
-                                <div>Protein: ${totalProtein.toFixed(1)}g</div>
-                                <div>Carbs: ${totalCarbs.toFixed(1)}g</div>
-                                <div>Fat: ${totalFat.toFixed(1)}g</div>
+                                <div>Protein: ${meal.foods.reduce((sum, f) => sum + (f.protein || 0), 0).toFixed(1)}g</div>
+                                <div>Carbs: ${meal.foods.reduce((sum, f) => sum + (f.carbs || 0), 0).toFixed(1)}g</div>
+                                <div>Fat: ${meal.foods.reduce((sum, f) => sum + (f.fat || 0), 0).toFixed(1)}g</div>
                             </div>
-                            <p><strong>Foods:</strong> ${meal.foods.map(f => f.name).join(', ')}</p>
-                            ${meal.photo_url ? `<img src="${meal.photo_url}" style="width: 100%; max-width: 200px; border-radius: 8px; margin: 0.5rem 0;">` : ''}
+                            <p><strong>Foods:</strong> ${foodsList}</p>
                             <div style="margin-top: 0.5rem;">
                                 <button onclick="editMeal('${meal.id}')" style="background: #667eea; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-right: 0.5rem;">✏️ Edit</button>
                                 <button onclick="deleteMeal('${meal.id}')" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px;">🗑️ Delete</button>
@@ -1193,68 +1053,14 @@
                     `;
                 });
                 
-                historyDiv.innerHTML = mealsHTML || '<p>No meals logged for this date.</p>';
+                historyDiv.innerHTML = mealsHTML;
                 dailyCaloriesSpan.textContent = totalCalories;
                 
             } catch (error) {
-                console.error('Error loading meal history:', error);
-                loadMockMealHistory();
+                console.error('Error loading meals:', error);
+                historyDiv.innerHTML = `<p>Error loading meals: ${error.message}</p>`;
+                dailyCaloriesSpan.textContent = '0';
             }
-        }
-        
-        // Fallback mock data function
-        function loadMockMealHistory() {
-            const historyDiv = document.getElementById('meal-history');
-            const dailyCaloriesSpan = document.getElementById('daily-calories');
-            
-            setTimeout(() => {
-                const mockMeals = [
-                    {
-                        type: '🍳 Breakfast',
-                        time: '8:00 AM',
-                        calories: 420,
-                        protein: 22,
-                        carbs: 35,
-                        fat: 24,
-                        foods: ['Scrambled eggs', 'Toast', 'Orange juice']
-                    },
-                    {
-                        type: '🥗 Lunch', 
-                        time: '12:30 PM',
-                        calories: 350,
-                        protein: 28,
-                        carbs: 12,
-                        fat: 18,
-                        foods: ['Grilled chicken salad', 'Olive oil dressing']
-                    }
-                ];
-                
-                let totalCalories = 0;
-                let mealsHTML = '';
-                
-                mockMeals.forEach(meal => {
-                    totalCalories += meal.calories;
-                    mealsHTML += `
-                        <div class="meal-item">
-                            <h3>${meal.type} - ${meal.time}</h3>
-                            <p><strong>${meal.calories} calories</strong></p>
-                            <div class="nutrition-info">
-                                <div>Protein: ${meal.protein}g</div>
-                                <div>Carbs: ${meal.carbs}g</div>
-                                <div>Fat: ${meal.fat}g</div>
-                            </div>
-                            <p><strong>Foods:</strong> ${meal.foods.join(', ')}</p>
-                            <div style="margin-top: 0.5rem;">
-                                <button onclick="alert('Demo data - create database tables to enable full functionality')" style="background: #667eea; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-right: 0.5rem;">✏️ Edit</button>
-                                <button onclick="alert('Demo data - create database tables to enable full functionality')" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px;">🗑️ Delete</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                historyDiv.innerHTML = mealsHTML || '<p>No meals logged for this date. <br><small>Create database tables to enable real data.</small></p>';
-                dailyCaloriesSpan.textContent = totalCalories;
-            }, 1000);
         }
         
         // Helper function for meal icons
