@@ -1798,7 +1798,7 @@
             
             if (supabase) {
                 try {
-                    const today = new Date().toISOString().split('T')[0];
+                    const dateStr = currentDate.toISOString().split('T')[0];
                     const { data: meals, error } = await supabase
                         .from('meals')
                         .select(`
@@ -1806,7 +1806,7 @@
                             foods (protein, carbs, fat)
                         `)
                         .eq('user_id', 'default_user')
-                        .eq('date', today);
+                        .eq('date', dateStr);
                     
                     if (!error && meals) {
                         meals.forEach(meal => {
