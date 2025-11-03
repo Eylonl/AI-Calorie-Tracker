@@ -13,14 +13,23 @@ def handle_api_requests():
     """Handle API requests from PWA"""
     query_params = st.query_params
     
+    # Debug: Show all query params
+    st.write("DEBUG - Query params:", dict(query_params))
+    
     if 'api' in query_params:
         api_action = query_params.get('api')
+        st.write("DEBUG - API action:", api_action)
         
         if api_action == 'get_supabase_config':
             try:
+                # Debug: Check if secrets exist
+                st.write("DEBUG - Checking secrets...")
+                supabase_url = st.secrets.get("SUPABASE_URL", "NOT_FOUND")
+                supabase_key = st.secrets.get("SUPABASE_ANON_KEY", "NOT_FOUND")
+                
                 config = {
-                    "supabase_url": st.secrets["SUPABASE_URL"],
-                    "supabase_anon_key": st.secrets["SUPABASE_ANON_KEY"],
+                    "supabase_url": supabase_url,
+                    "supabase_anon_key": supabase_key,
                     "features": {
                         "supabase_enabled": True,
                         "ai_analysis_enabled": True
@@ -29,7 +38,7 @@ def handle_api_requests():
                 st.json(config)
                 st.stop()
             except Exception as e:
-                st.json({"error": "Configuration not available"})
+                st.json({"error": f"Configuration error: {str(e)}"})
                 st.stop()
                 
         elif api_action == 'analyze_photo':
