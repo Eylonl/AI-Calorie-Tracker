@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create App Icons</title>
+</head>
+<body>
+    <canvas id="canvas192" width="192" height="192" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    <canvas id="canvas512" width="512" height="512" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    
+    <script>
+        // Create 192x192 icon
+        const canvas192 = document.getElementById('canvas192');
+        const ctx192 = canvas192.getContext('2d');
+        
+        // Background
+        ctx192.fillStyle = '#667eea';
+        ctx192.fillRect(0, 0, 192, 192);
+        
+        // Emoji
+        ctx192.font = '120px Arial';
+        ctx192.textAlign = 'center';
+        ctx192.textBaseline = 'middle';
+        ctx192.fillText('🍽️', 96, 96);
+        
+        // Create 512x512 icon
+        const canvas512 = document.getElementById('canvas512');
+        const ctx512 = canvas512.getContext('2d');
+        
+        // Background
+        ctx512.fillStyle = '#667eea';
+        ctx512.fillRect(0, 0, 512, 512);
+        
+        // Emoji
+        ctx512.font = '320px Arial';
+        ctx512.textAlign = 'center';
+        ctx512.textBaseline = 'middle';
+        ctx512.fillText('🍽️', 256, 256);
+        
+        // Download function
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Auto-download icons
+        setTimeout(() => {
+            downloadCanvas(canvas192, 'icon-192.png');
+            setTimeout(() => {
+                downloadCanvas(canvas512, 'icon-512.png');
+            }, 1000);
+        }, 1000);
+    </script>
+</body>
+</html>

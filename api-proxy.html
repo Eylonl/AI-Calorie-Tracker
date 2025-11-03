@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Proxy</title>
+</head>
+<body>
+    <script>
+        // Simple proxy to handle CORS issues with Streamlit
+        window.addEventListener('message', async function(event) {
+            if (event.origin !== 'https://eylonl.github.io') {
+                return; // Only accept messages from our PWA
+            }
+            
+            const { action, data, requestId } = event.data;
+            
+            if (action === 'analyze_photo') {
+                // AI analysis not available - return error
+                event.source.postMessage({
+                    requestId: requestId,
+                    success: false,
+                    error: "AI photo analysis not available. Please enter meal details manually."
+                }, event.origin);
+            }
+        });
+        
+        // Let parent know we're ready
+        if (window.parent !== window) {
+            window.parent.postMessage({ action: 'proxy_ready' }, 'https://eylonl.github.io');
+        }
+    </script>
+</body>
+</html>
