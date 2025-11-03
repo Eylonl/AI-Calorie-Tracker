@@ -24,7 +24,7 @@ jobs:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       run: |
-        # Create config.js with actual secrets
+        # Create config.js with actual secrets and Vercel API
         cat > mobile-app/config.js << EOF
         // CalorieAI PWA Configuration - Generated from GitHub Secrets
         
@@ -40,12 +40,16 @@ jobs:
             APP_NAME: 'CalorieAI',
             VERSION: '1.0.0',
             
+            // Vercel API Configuration
+            VERCEL_API_URL: 'https://ai-calorie-tracker-lea0t96hd-eylonls-projects.vercel.app',
+            
             // Features
             FEATURES: {
                 SUPABASE_ENABLED: true,
-                AI_ANALYSIS_ENABLED: false, // Will be enabled when we add serverless function
+                AI_ANALYSIS_ENABLED: true, // AI analysis enabled via Vercel
                 OFFLINE_MODE: true,
-                USE_BACKEND_API: false
+                USE_BACKEND_API: true,  // Use Vercel serverless functions
+                USE_VERCEL_API: true    // Use Vercel instead of Streamlit
             }
         };
         
