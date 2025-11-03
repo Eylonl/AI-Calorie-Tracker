@@ -901,8 +901,8 @@
                 smartFillBtn.innerHTML = '⏳ Analyzing...';
                 smartFillBtn.disabled = true;
                 
-                // Call AI API with text description
-                const response = await fetch(window.CONFIG.VERCEL_API_URL, {
+                // Call AI API with text description (same endpoint as photo analysis)
+                const response = await fetch('/api/analyze-photo', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
