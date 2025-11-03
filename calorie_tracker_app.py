@@ -11,10 +11,10 @@ import os
 # API Endpoints for PWA
 def handle_api_requests():
     """Handle API requests from PWA"""
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params
     
     if 'api' in query_params:
-        api_action = query_params.get('api', [None])[0]
+        api_action = query_params.get('api')
         
         if api_action == 'get_supabase_config':
             try:
@@ -35,7 +35,7 @@ def handle_api_requests():
         elif api_action == 'analyze_photo':
             try:
                 if 'image_data' in query_params:
-                    image_data = query_params['image_data'][0]
+                    image_data = query_params.get('image_data')
                     
                     # Initialize OpenAI client
                     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
