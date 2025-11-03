@@ -1331,7 +1331,7 @@
             document.getElementById('fat-goal').value = goals.fat;
         }
         
-        function saveGoals() {
+        async function saveGoals() {
             const goals = {
                 calories: parseInt(document.getElementById('calorie-goal').value),
                 protein: parseInt(document.getElementById('protein-goal').value),
@@ -1341,7 +1341,11 @@
             
             localStorage.setItem('nutritionGoals', JSON.stringify(goals));
             alert('Goals saved! 💾');
-            calculateTodaysNutrition();
+            
+            // Use setTimeout to make nutrition calculation non-blocking
+            setTimeout(() => {
+                calculateTodaysNutrition();
+            }, 0);
         }
         
         async function calculateTodaysNutrition() {
