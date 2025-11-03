@@ -4,10 +4,10 @@
   "description": "AI-powered calorie tracking app",
   "main": "index.js",
   "scripts": {
-    "build": "echo 'Building Streamlit app...'",
+    "build": "node build.js && npx cap sync",
     "capacitor:add:ios": "npx cap add ios",
     "capacitor:run:ios": "npx cap run ios",
-    "capacitor:build": "npm run build && npx cap sync",
+    "capacitor:build": "npm run build",
     "capacitor:open:ios": "npx cap open ios"
   },
   "keywords": [
