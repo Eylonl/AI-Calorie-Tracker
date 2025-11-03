@@ -64,35 +64,75 @@ export default async function handler(req, res) {
         // Parse the response
         const analysisText = response.choices[0].message.content;
         
-        // Try to extract JSON from the response
+        // Try to extract and parse JSON from the response
         let analysis;
         try {
-            // Look for JSON in the response
-            const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                analysis = JSON.parse(jsonMatch[0]);
-            } else {
-                throw new Error('No JSON found in response');
+            // First try to parse the entire response as JSON
+            analysis = JSON.parse(analysisText);
+        } catch (firstError) {
+            try {
+                // If that fails, look for JSON block in the response
+                const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    let jsonString = jsonMatch[0];
+                    // Clean up common JSON issues
+                    jsonString = jsonString
+                        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
+                        .replace(/,\s*}/g, '}') // Remove trailing commas
+                        .replace(/,\s*]/g, ']'); // Remove trailing commas in arrays
+                    
+                    analysis = JSON.parse(jsonString);
+                } else {
+                    throw new Error('No JSON found in response');
+                }
+            } catch (secondError) {
+                console.error('JSON parsing failed:', secondError);
+                console.error('Raw response:', analysisText);
+                
+                // Create fallback structured response
+                analysis = {
+                    foods: [{
+                        name: "Food Item",
+                        portion_size: "1 serving",
+                        calories: 300,
+                        protein: 15.0,
+                        carbs: 30.0,
+                        fat: 12.0,
+                        fiber: 3.0,
+                        sugar: 5.0,
+                        sodium: 200.0,
+                        confidence: 75
+                    }],
+                    total_calories: 300,
+                    notes: `AI parsing failed. Raw response: ${analysisText.substring(0, 200)}...`
+                };
             }
-        } catch (parseError) {
-            // If parsing fails, create structured response from text
-            analysis = {
-                foods: [{
-                    name: "Food Item",
-                    portion_size: "1 serving",
-                    calories: 300,
-                    protein: 15,
-                    carbs: 30,
-                    fat: 12,
-                    fiber: 3,
-                    sugar: 5,
-                    sodium: 200,
-                    confidence: 75
-                }],
-                total_calories: 300,
-                notes: analysisText
-            };
         }
+        
+        // Ensure all required fields exist and are properly formatted
+        if (!analysis.foods || !Array.isArray(analysis.foods)) {
+            analysis.foods = [];
+        }
+        
+        // Clean up food items
+        analysis.foods = analysis.foods.map(food => ({
+            name: String(food.name || 'Unknown Food'),
+            portion_size: String(food.portion_size || '1 serving'),
+            calories: Number(food.calories) || 0,
+            protein: Number(food.protein) || 0,
+            carbs: Number(food.carbs) || 0,
+            fat: Number(food.fat) || 0,
+            fiber: Number(food.fiber) || 0,
+            sugar: Number(food.sugar) || 0,
+            sodium: Number(food.sodium) || 0,
+            confidence: Number(food.confidence) || 50
+        }));
+        
+        // Ensure total_calories is a number
+        analysis.total_calories = Number(analysis.total_calories) || 0;
+        
+        // Ensure notes is a string
+        analysis.notes = String(analysis.notes || '');
         
         return res.status(200).json(analysis);
         
