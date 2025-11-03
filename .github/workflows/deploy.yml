@@ -18,44 +18,11 @@ jobs:
       with:
         node-version: '18'
     
-    - name: Create config with secrets
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    - name: Verify config
       run: |
-        # Create config.js with actual secrets and Vercel API
-        cat > mobile-app/config.js << EOF
-        // CalorieAI PWA Configuration - Generated from GitHub Secrets
-        
-        const CONFIG = {
-            // Backend API Configuration
-            STREAMLIT_API_URL: 'https://ai-calorie-tracker-eylonl.streamlit.app',
-            
-            // Supabase Configuration - From GitHub Secrets
-            SUPABASE_URL: '${{ secrets.SUPABASE_URL }}',
-            SUPABASE_ANON_KEY: '${{ secrets.SUPABASE_ANON_KEY }}',
-            
-            // App Configuration
-            APP_NAME: 'CalorieAI',
-            VERSION: '1.0.0',
-            
-            // Vercel API Configuration
-            VERCEL_API_URL: 'https://ai-calorie-tracker-lea0t96hd-eylonls-projects.vercel.app',
-            
-            // Features
-            FEATURES: {
-                SUPABASE_ENABLED: true,
-                AI_ANALYSIS_ENABLED: true, // AI analysis enabled via Vercel
-                OFFLINE_MODE: true,
-                USE_BACKEND_API: true,  // Use Vercel serverless functions
-                USE_VERCEL_API: true    // Use Vercel instead of Streamlit
-            }
-        };
-        
-        // Export for use in main app
-        window.CONFIG = CONFIG;
-        EOF
+        # Just verify the config.js exists and show its contents
+        echo "Using local config.js file with correct Vercel URL:"
+        cat mobile-app/config.js
     
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
