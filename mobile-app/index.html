@@ -605,31 +605,9 @@
         
         // Initialize Supabase
         async function initSupabase() {
-            if (window.CONFIG.FEATURES.USE_BACKEND_API) {
-                // Fetch configuration from Streamlit backend
-                try {
-                    const configResponse = await fetch(`${window.CONFIG.STREAMLIT_API_URL}?api=get_supabase_config`);
-                    const backendConfig = await configResponse.json();
-                    
-                    if (backendConfig.error) {
-                        console.log('Backend config not available - running in demo mode');
-                        return false;
-                    }
-                    
-                    // Update config with backend values
-                    window.CONFIG.SUPABASE_URL = backendConfig.supabase_url;
-                    window.CONFIG.SUPABASE_ANON_KEY = backendConfig.supabase_anon_key;
-                    window.CONFIG.FEATURES.SUPABASE_ENABLED = backendConfig.features.supabase_enabled;
-                    window.CONFIG.FEATURES.AI_ANALYSIS_ENABLED = backendConfig.features.ai_analysis_enabled;
-                    
-                } catch (error) {
-                    console.log('Could not fetch backend config - running in demo mode');
-                    return false;
-                }
-            }
-            
-            if (!window.CONFIG.FEATURES.SUPABASE_ENABLED || !window.CONFIG.SUPABASE_URL) {
+            if (!window.CONFIG.FEATURES.SUPABASE_ENABLED || !window.CONFIG.SUPABASE_URL || window.CONFIG.SUPABASE_URL === 'https://your-project.supabase.co') {
                 console.log('Supabase not configured - running in demo mode');
+                console.log('To enable Supabase: Add your credentials to mobile-app/config.js and set SUPABASE_ENABLED: true');
                 return false;
             }
             
@@ -638,7 +616,7 @@
                     window.CONFIG.SUPABASE_URL, 
                     window.CONFIG.SUPABASE_ANON_KEY
                 );
-                console.log('Supabase initialized successfully via backend config');
+                console.log('✅ Supabase initialized successfully');
                 return true;
             } catch (error) {
                 console.error('Failed to initialize Supabase:', error);

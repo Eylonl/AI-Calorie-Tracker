@@ -5,20 +5,21 @@ const CONFIG = {
     // Backend API Configuration
     STREAMLIT_API_URL: 'https://ai-calorie-tracker-eylonl.streamlit.app',
     
-    // These will be fetched from the backend API
-    SUPABASE_URL: null,
-    SUPABASE_ANON_KEY: null,
+    // Supabase Configuration - Add your credentials here to bypass CORS
+    // TODO: Replace with your actual Supabase credentials
+    SUPABASE_URL: 'https://your-project.supabase.co',
+    SUPABASE_ANON_KEY: 'your-supabase-anon-key-here',
     
     // App Configuration
     APP_NAME: 'CalorieAI',
     VERSION: '1.0.0',
     
-    // Features - Will be configured by backend
+    // Features
     FEATURES: {
-        SUPABASE_ENABLED: false,
-        AI_ANALYSIS_ENABLED: false,
+        SUPABASE_ENABLED: false, // Set to true after adding your credentials above
+        AI_ANALYSIS_ENABLED: false, // AI will still use backend API
         OFFLINE_MODE: true,
-        USE_BACKEND_API: true  // Use Streamlit backend for API calls
+        USE_BACKEND_API: true  // Use Streamlit backend for AI calls only
     }
 };
 
