@@ -837,30 +837,49 @@
         }
         
         // Manual entry functions
-        function showManualEntry() {
+        function showManualEntry(analysis = null) {
             const manualEntry = document.getElementById('manual-entry');
             manualEntry.style.display = 'block';
-            addFoodItem(); // Add first food item
+            
+            // Clear existing food items
+            const foodItems = document.getElementById('food-items');
+            foodItems.innerHTML = '';
+            
+            if (analysis && analysis.foods && analysis.foods.length > 0) {
+                // Pre-populate with AI analysis data
+                analysis.foods.forEach(food => {
+                    addFoodItem(food);
+                });
+                
+                // Pre-populate notes if available
+                const notesField = document.querySelector('#manual-entry textarea');
+                if (notesField && analysis.notes) {
+                    notesField.value = analysis.notes;
+                }
+            } else {
+                // Add empty food item if no analysis data
+                addFoodItem();
+            }
         }
         
-        function addFoodItem() {
+        function addFoodItem(foodData = null) {
             const foodItems = document.getElementById('food-items');
             const itemId = 'food-' + Date.now();
             
             const foodItem = document.createElement('div');
             foodItem.className = 'food-item';
             foodItem.innerHTML = `
-                <input type="text" placeholder="Food name" id="${itemId}-name">
-                <input type="text" placeholder="Portion size (e.g., 1 cup, 150g)" id="${itemId}-portion">
+                <input type="text" placeholder="Food name" id="${itemId}-name" value="${foodData?.name || ''}">
+                <input type="text" placeholder="Portion size (e.g., 1 cup, 150g)" id="${itemId}-portion" value="${foodData?.portion_size || ''}">
                 <div class="nutrition-grid">
-                    <input type="number" placeholder="Calories" id="${itemId}-calories">
-                    <input type="number" placeholder="Protein (g)" id="${itemId}-protein" step="0.1">
-                    <input type="number" placeholder="Carbs (g)" id="${itemId}-carbs" step="0.1">
-                    <input type="number" placeholder="Fat (g)" id="${itemId}-fat" step="0.1">
-                    <input type="number" placeholder="Fiber (g)" id="${itemId}-fiber" step="0.1">
-                    <input type="number" placeholder="Sugar (g)" id="${itemId}-sugar" step="0.1">
+                    <input type="number" placeholder="Calories" id="${itemId}-calories" value="${foodData?.calories || ''}">
+                    <input type="number" placeholder="Protein (g)" id="${itemId}-protein" step="0.1" value="${foodData?.protein || ''}">
+                    <input type="number" placeholder="Carbs (g)" id="${itemId}-carbs" step="0.1" value="${foodData?.carbs || ''}">
+                    <input type="number" placeholder="Fat (g)" id="${itemId}-fat" step="0.1" value="${foodData?.fat || ''}">
+                    <input type="number" placeholder="Fiber (g)" id="${itemId}-fiber" step="0.1" value="${foodData?.fiber || ''}">
+                    <input type="number" placeholder="Sugar (g)" id="${itemId}-sugar" step="0.1" value="${foodData?.sugar || ''}">
                 </div>
-                <input type="number" placeholder="Sodium (mg)" id="${itemId}-sodium" step="0.1">
+                <input type="number" placeholder="Sodium (mg)" id="${itemId}-sodium" step="0.1" value="${foodData?.sodium || ''}">
                 <button type="button" onclick="this.parentElement.remove()" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;">Remove</button>
             `;
             
@@ -944,7 +963,7 @@
                     <button class="button" onclick="useAIAnalysis(${JSON.stringify(analysis)})" style="margin-top: 1rem;">
                         ✅ Use This Analysis
                     </button>
-                    <button class="button" onclick="showManualEntry()" style="background: #718096;">
+                    <button class="button" onclick="showManualEntry(${JSON.stringify(analysis)})" style="background: #718096;">
                         ✏️ Edit Manually
                     </button>
                 </div>
