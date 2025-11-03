@@ -385,6 +385,18 @@
         .photo-buttons .button {
             margin-bottom: 0;
         }
+        
+        /* Date input styling */
+        #meal-date {
+            border: 2px solid #e2e8f0;
+            transition: border-color 0.2s;
+        }
+        
+        #meal-date:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
 
         @media (max-width: 480px) {
             .container {
@@ -419,9 +431,13 @@
         </div>
         
         <div id="log-tab" class="tab-content active">
-            <!-- Meal Type Selection -->
+            <!-- Date Selection -->
             <div class="card">
-                <h2>🍽️ Meal Type</h2>
+                <h2>📅 Date & Meal Type</h2>
+                <div style="margin-bottom: 1rem;">
+                    <label for="meal-date" style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Date:</label>
+                    <input type="date" id="meal-date" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem;">
+                </div>
                 <div class="meal-type-buttons">
                     <button class="meal-type-btn active" data-type="Breakfast">🌅 Breakfast</button>
                     <button class="meal-type-btn" data-type="Lunch">☀️ Lunch</button>
@@ -606,6 +622,7 @@
         // Global variables
         let currentDate = new Date();
         let selectedMealType = 'Breakfast';
+        let selectedMealDate = new Date();
         let currentPhoto = null;
         let supabase = null;
         
@@ -675,14 +692,25 @@
             }
         }
         
-        // Meal type selection
+        // Meal type selection and date initialization
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize meal type buttons
             document.querySelectorAll('.meal-type-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.meal-type-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     selectedMealType = this.dataset.type;
                 });
+            });
+            
+            // Initialize date input with today's date
+            const mealDateInput = document.getElementById('meal-date');
+            const today = new Date();
+            mealDateInput.value = today.toISOString().split('T')[0];
+            
+            // Listen for date changes
+            mealDateInput.addEventListener('change', function() {
+                selectedMealDate = new Date(this.value);
             });
         });
         
@@ -1284,11 +1312,11 @@
                 // Create meal record
                 const mealData = {
                     user_id: 'default_user',
-                    date: new Date().toISOString().split('T')[0],
+                    date: selectedMealDate.toISOString().split('T')[0],
                     meal_type: selectedMealType,
                     total_calories: totalCalories,
                     notes: '',
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString() // Keep current timestamp for ordering
                 };
                 
                 // Insert meal
