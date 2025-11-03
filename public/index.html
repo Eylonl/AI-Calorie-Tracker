@@ -404,7 +404,7 @@
     <div class="container">
         <div class="tabs">
             <button class="tab active" onclick="showTab('log')">Log Meal</button>
-            <button class="tab" onclick="showTab('history')">History</button>
+            <button class="tab" onclick="showTab('data')">Data</button>
             <button class="tab" onclick="showTab('settings')">Settings</button>
         </div>
         
@@ -480,7 +480,7 @@
             <div id="analysis-result" style="display: none;"></div>
         </div>
         
-        <div id="history-tab" class="tab-content">
+        <div id="data-tab" class="tab-content">
             <!-- Date Selection -->
             <div class="card">
                 <h4 style="margin-bottom: 0.5rem; color: #4a5568;">📅 Select Date</h4>
@@ -658,13 +658,13 @@
             tabButtons.forEach(btn => {
                 const buttonText = btn.textContent.toLowerCase();
                 if ((tabName === 'log' && buttonText.includes('log meal')) ||
-                    (tabName === 'history' && buttonText.includes('history')) ||
+                    (tabName === 'data' && buttonText.includes('data')) ||
                     (tabName === 'settings' && buttonText.includes('settings'))) {
                     btn.classList.add('active');
                 }
             });
             
-            if (tabName === 'history') {
+            if (tabName === 'data') {
                 initHistoryDatePicker();
                 loadMealHistory();
                 updateDateDisplay();
