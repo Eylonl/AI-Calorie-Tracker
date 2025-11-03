@@ -2,22 +2,23 @@
 // Replace these with your actual Supabase credentials
 
 const CONFIG = {
-    // Supabase Configuration
-    SUPABASE_URL: 'https://your-project.supabase.co',
-    SUPABASE_ANON_KEY: 'your-supabase-anon-key-here',
+    // Backend API Configuration
+    STREAMLIT_API_URL: 'https://ai-calorie-tracker-eylonl.streamlit.app',
     
-    // OpenAI Configuration (for future AI integration)
-    OPENAI_API_KEY: 'your-openai-api-key-here',
+    // These will be fetched from the backend API
+    SUPABASE_URL: null,
+    SUPABASE_ANON_KEY: null,
     
     // App Configuration
     APP_NAME: 'CalorieAI',
     VERSION: '1.0.0',
     
-    // Features
+    // Features - Will be configured by backend
     FEATURES: {
-        SUPABASE_ENABLED: false, // Set to true when you add credentials
-        AI_ANALYSIS_ENABLED: false, // Set to true when you add OpenAI key
-        OFFLINE_MODE: true
+        SUPABASE_ENABLED: false,
+        AI_ANALYSIS_ENABLED: false,
+        OFFLINE_MODE: true,
+        USE_BACKEND_API: true  // Use Streamlit backend for API calls
     }
 };
 

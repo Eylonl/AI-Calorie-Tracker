@@ -604,8 +604,31 @@
         let supabase = null;
         
         // Initialize Supabase
-        function initSupabase() {
-            if (!window.CONFIG || !window.CONFIG.FEATURES.SUPABASE_ENABLED) {
+        async function initSupabase() {
+            if (window.CONFIG.FEATURES.USE_BACKEND_API) {
+                // Fetch configuration from Streamlit backend
+                try {
+                    const configResponse = await fetch(`${window.CONFIG.STREAMLIT_API_URL}?api=get_supabase_config`);
+                    const backendConfig = await configResponse.json();
+                    
+                    if (backendConfig.error) {
+                        console.log('Backend config not available - running in demo mode');
+                        return false;
+                    }
+                    
+                    // Update config with backend values
+                    window.CONFIG.SUPABASE_URL = backendConfig.supabase_url;
+                    window.CONFIG.SUPABASE_ANON_KEY = backendConfig.supabase_anon_key;
+                    window.CONFIG.FEATURES.SUPABASE_ENABLED = backendConfig.features.supabase_enabled;
+                    window.CONFIG.FEATURES.AI_ANALYSIS_ENABLED = backendConfig.features.ai_analysis_enabled;
+                    
+                } catch (error) {
+                    console.log('Could not fetch backend config - running in demo mode');
+                    return false;
+                }
+            }
+            
+            if (!window.CONFIG.FEATURES.SUPABASE_ENABLED || !window.CONFIG.SUPABASE_URL) {
                 console.log('Supabase not configured - running in demo mode');
                 return false;
             }
@@ -615,7 +638,7 @@
                     window.CONFIG.SUPABASE_URL, 
                     window.CONFIG.SUPABASE_ANON_KEY
                 );
-                console.log('Supabase initialized successfully');
+                console.log('Supabase initialized successfully via backend config');
                 return true;
             } catch (error) {
                 console.error('Failed to initialize Supabase:', error);
@@ -947,8 +970,29 @@
         }
         
         async function callOpenAIVision(base64Image) {
-            // This would call your OpenAI API
-            // For now, return mock data
+            if (window.CONFIG.FEATURES.USE_BACKEND_API && window.CONFIG.FEATURES.AI_ANALYSIS_ENABLED) {
+                try {
+                    // Call Streamlit backend API for AI analysis
+                    const response = await fetch(`${window.CONFIG.STREAMLIT_API_URL}?api=analyze_photo&image_data=${encodeURIComponent(base64Image)}`);
+                    const analysis = await response.json();
+                    
+                    if (analysis.error) {
+                        throw new Error(analysis.error);
+                    }
+                    
+                    return analysis;
+                } catch (error) {
+                    console.error('Backend AI analysis failed:', error);
+                    // Fall back to mock data
+                    return getMockAnalysis();
+                }
+            } else {
+                // Use mock data
+                return getMockAnalysis();
+            }
+        }
+        
+        function getMockAnalysis() {
             return {
                 foods: [
                     {
@@ -1479,12 +1523,14 @@
         }
         
         // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // Try to initialize Supabase
-            const supabaseInitialized = initSupabase();
+            const supabaseInitialized = await initSupabase();
             
             if (!supabaseInitialized) {
-                console.log('Running in demo mode - add your Supabase credentials for full functionality');
+                console.log('Running in demo mode - backend API not available or not configured');
+            } else {
+                console.log('✅ Connected to backend API - full functionality enabled');
             }
         });
         
