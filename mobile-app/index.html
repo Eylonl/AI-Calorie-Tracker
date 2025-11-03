@@ -344,6 +344,7 @@
                 <div id="manual-entry" style="display: none;">
                     <div id="food-items"></div>
                     <button class="button" onclick="addFoodItem()">+ Add Another Food</button>
+                    <button class="button" onclick="saveMeal()" style="background: #38a169;">✅ Save Meal</button>
                 </div>
             </div>
 
@@ -382,11 +383,38 @@
         </div>
     </div>
     
+    <!-- Configuration -->
+    <script src="./config.js"></script>
+    
+    <!-- Supabase JavaScript SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
     <script>
         // Global variables
         let currentDate = new Date();
         let selectedMealType = 'Breakfast';
         let currentPhoto = null;
+        let supabase = null;
+        
+        // Initialize Supabase
+        function initSupabase() {
+            if (!window.CONFIG || !window.CONFIG.FEATURES.SUPABASE_ENABLED) {
+                console.log('Supabase not configured - running in demo mode');
+                return false;
+            }
+            
+            try {
+                supabase = window.supabase.createClient(
+                    window.CONFIG.SUPABASE_URL, 
+                    window.CONFIG.SUPABASE_ANON_KEY
+                );
+                console.log('Supabase initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize Supabase:', error);
+                return false;
+            }
+        }
         
         // Tab switching
         function showTab(tabName) {
@@ -587,12 +615,11 @@
             loadMealHistory();
         }
         
-        // Load meal history
-        function loadMealHistory() {
+        // Load meal history from Supabase
+        async function loadMealHistory() {
             const historyDiv = document.getElementById('meal-history');
             const dailyCaloriesSpan = document.getElementById('daily-calories');
             
-            // Simulate loading
             historyDiv.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
@@ -600,8 +627,98 @@
                 </div>
             `;
             
+            if (!supabase) {
+                // Fallback to mock data if Supabase not available
+                loadMockMealHistory();
+                return;
+            }
+            
+            try {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                
+                // Query meals for the selected date
+                const { data: meals, error } = await supabase
+                    .from('meals')
+                    .select(`
+                        *,
+                        foods (
+                            id,
+                            name,
+                            portion_size,
+                            calories,
+                            protein,
+                            carbs,
+                            fat,
+                            fiber,
+                            sugar,
+                            sodium,
+                            confidence
+                        )
+                    `)
+                    .eq('user_id', 'default_user')
+                    .eq('date', dateStr)
+                    .order('timestamp', { ascending: false });
+                
+                if (error) {
+                    console.error('Error loading meals:', error);
+                    loadMockMealHistory();
+                    return;
+                }
+                
+                let totalCalories = 0;
+                let mealsHTML = '';
+                
+                meals.forEach(meal => {
+                    const mealTime = new Date(meal.timestamp).toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit' 
+                    });
+                    
+                    const mealIcon = getMealIcon(meal.meal_type);
+                    totalCalories += meal.total_calories;
+                    
+                    // Calculate total nutrition
+                    let totalProtein = 0, totalCarbs = 0, totalFat = 0;
+                    meal.foods.forEach(food => {
+                        totalProtein += food.protein || 0;
+                        totalCarbs += food.carbs || 0;
+                        totalFat += food.fat || 0;
+                    });
+                    
+                    mealsHTML += `
+                        <div class="meal-item">
+                            <h3>${mealIcon} ${meal.meal_type} - ${mealTime}</h3>
+                            <p><strong>${meal.total_calories} calories</strong></p>
+                            <div class="nutrition-info">
+                                <div>Protein: ${totalProtein.toFixed(1)}g</div>
+                                <div>Carbs: ${totalCarbs.toFixed(1)}g</div>
+                                <div>Fat: ${totalFat.toFixed(1)}g</div>
+                            </div>
+                            <p><strong>Foods:</strong> ${meal.foods.map(f => f.name).join(', ')}</p>
+                            ${meal.photo_url ? `<img src="${meal.photo_url}" style="width: 100%; max-width: 200px; border-radius: 8px; margin: 0.5rem 0;">` : ''}
+                            <div style="margin-top: 0.5rem;">
+                                <button onclick="editMeal('${meal.id}')" style="background: #667eea; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-right: 0.5rem;">✏️ Edit</button>
+                                <button onclick="deleteMeal('${meal.id}')" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px;">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                historyDiv.innerHTML = mealsHTML || '<p>No meals logged for this date.</p>';
+                dailyCaloriesSpan.textContent = totalCalories;
+                
+            } catch (error) {
+                console.error('Error loading meal history:', error);
+                loadMockMealHistory();
+            }
+        }
+        
+        // Fallback mock data function
+        function loadMockMealHistory() {
+            const historyDiv = document.getElementById('meal-history');
+            const dailyCaloriesSpan = document.getElementById('daily-calories');
+            
             setTimeout(() => {
-                // Mock data based on selected date
                 const mockMeals = [
                     {
                         type: '🍳 Breakfast',
@@ -639,28 +756,194 @@
                             </div>
                             <p><strong>Foods:</strong> ${meal.foods.join(', ')}</p>
                             <div style="margin-top: 0.5rem;">
-                                <button onclick="editMeal()" style="background: #667eea; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-right: 0.5rem;">✏️ Edit</button>
-                                <button onclick="deleteMeal()" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px;">🗑️ Delete</button>
+                                <button onclick="alert('Connect Supabase for full functionality')" style="background: #667eea; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-right: 0.5rem;">✏️ Edit</button>
+                                <button onclick="alert('Connect Supabase for full functionality')" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px;">🗑️ Delete</button>
                             </div>
                         </div>
                     `;
                 });
                 
-                historyDiv.innerHTML = mealsHTML || '<p>No meals logged for this date.</p>';
+                historyDiv.innerHTML = mealsHTML || '<p>No meals logged for this date. <br><small>Connect Supabase for real data.</small></p>';
                 dailyCaloriesSpan.textContent = totalCalories;
             }, 1000);
         }
         
-        function editMeal() {
-            alert('Edit functionality - would open edit form');
+        // Helper function for meal icons
+        function getMealIcon(mealType) {
+            const icons = {
+                'Breakfast': '🍳',
+                'Lunch': '🥗', 
+                'Dinner': '🍽️',
+                'Snack': '🍿'
+            };
+            return icons[mealType] || '🍽️';
         }
         
-        function deleteMeal() {
-            if (confirm('Delete this meal?')) {
-                alert('Meal deleted!');
-                loadMealHistory();
+        // Save meal to Supabase
+        async function saveMeal() {
+            if (!supabase) {
+                alert('Meal saved locally! 🎉 (Connect Supabase for cloud sync)');
+                resetMealForm();
+                return;
+            }
+            
+            try {
+                // Get manual entry data if available
+                const manualFoods = getManualEntryData();
+                
+                if (manualFoods.length === 0) {
+                    alert('Please add at least one food item');
+                    return;
+                }
+                
+                // Calculate total calories
+                const totalCalories = manualFoods.reduce((sum, food) => sum + (food.calories || 0), 0);
+                
+                // Create meal record
+                const mealData = {
+                    user_id: 'default_user',
+                    date: new Date().toISOString().split('T')[0],
+                    meal_type: selectedMealType,
+                    total_calories: totalCalories,
+                    notes: '',
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Insert meal
+                const { data: meal, error: mealError } = await supabase
+                    .from('meals')
+                    .insert([mealData])
+                    .select()
+                    .single();
+                
+                if (mealError) {
+                    console.error('Error saving meal:', mealError);
+                    alert('Error saving meal: ' + mealError.message);
+                    return;
+                }
+                
+                // Insert foods
+                const foodsData = manualFoods.map(food => ({
+                    meal_id: meal.id,
+                    name: food.name,
+                    portion_size: food.portion_size,
+                    calories: food.calories || 0,
+                    protein: food.protein || 0,
+                    carbs: food.carbs || 0,
+                    fat: food.fat || 0,
+                    fiber: food.fiber || 0,
+                    sugar: food.sugar || 0,
+                    sodium: food.sodium || 0,
+                    confidence: 100
+                }));
+                
+                const { error: foodsError } = await supabase
+                    .from('foods')
+                    .insert(foodsData);
+                
+                if (foodsError) {
+                    console.error('Error saving foods:', foodsError);
+                    alert('Error saving foods: ' + foodsError.message);
+                    return;
+                }
+                
+                alert('Meal saved successfully! 🎉');
+                resetMealForm();
+                
+                // Refresh history if on history tab
+                if (document.getElementById('history-tab').classList.contains('active')) {
+                    loadMealHistory();
+                }
+                
+            } catch (error) {
+                console.error('Error saving meal:', error);
+                alert('Error saving meal: ' + error.message);
             }
         }
+        
+        // Get manual entry data
+        function getManualEntryData() {
+            const foodItems = document.querySelectorAll('.food-item');
+            const foods = [];
+            
+            foodItems.forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                const food = {};
+                
+                inputs.forEach(input => {
+                    const field = input.id.split('-').pop();
+                    const value = input.value.trim();
+                    
+                    if (field === 'name' || field === 'portion') {
+                        food[field === 'portion' ? 'portion_size' : field] = value;
+                    } else if (value) {
+                        food[field] = parseFloat(value) || 0;
+                    }
+                });
+                
+                if (food.name && food.portion_size) {
+                    foods.push(food);
+                }
+            });
+            
+            return foods;
+        }
+        
+        // Reset meal form
+        function resetMealForm() {
+            document.getElementById('photo-preview').style.display = 'none';
+            document.getElementById('analyze-btn').style.display = 'none';
+            document.getElementById('analysis-result').style.display = 'none';
+            document.getElementById('manual-entry').style.display = 'none';
+            document.getElementById('food-items').innerHTML = '';
+            document.getElementById('camera').value = '';
+            document.getElementById('gallery').value = '';
+            currentPhoto = null;
+        }
+        
+        // Delete meal from Supabase
+        async function deleteMeal(mealId) {
+            if (!confirm('Delete this meal?')) return;
+            
+            if (!supabase) {
+                alert('Connect Supabase for full functionality');
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('meals')
+                    .delete()
+                    .eq('id', mealId);
+                
+                if (error) {
+                    console.error('Error deleting meal:', error);
+                    alert('Error deleting meal: ' + error.message);
+                    return;
+                }
+                
+                alert('Meal deleted successfully! 🗑️');
+                loadMealHistory();
+                
+            } catch (error) {
+                console.error('Error deleting meal:', error);
+                alert('Error deleting meal: ' + error.message);
+            }
+        }
+        
+        function editMeal(mealId) {
+            alert('Edit functionality coming soon! Meal ID: ' + mealId);
+        }
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Try to initialize Supabase
+            const supabaseInitialized = initSupabase();
+            
+            if (!supabaseInitialized) {
+                console.log('Running in demo mode - add your Supabase credentials for full functionality');
+            }
+        });
         
         // Service Worker registration
         if ('serviceWorker' in navigator) {
