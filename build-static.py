@@ -14,9 +14,8 @@ def create_static_build():
     
     # Create dist directory
     dist_dir = Path("dist")
-    if dist_dir.exists():
-        shutil.rmtree(dist_dir)
-    dist_dir.mkdir()
+    if not dist_dir.exists():
+        dist_dir.mkdir()
     
     # Copy essential files
     files_to_copy = [
@@ -77,7 +76,8 @@ def create_static_build():
             const loading = document.getElementById('loading');
             
             // Replace with your actual Streamlit Community Cloud URL
-            iframe.src = 'https://your-streamlit-app-url.streamlit.app';
+            // For now, we'll use a placeholder - you'll need to update this
+            iframe.src = 'https://ai-calorie-tracker-eylonl.streamlit.app';
             
             iframe.onload = () => {
                 loading.style.display = 'none';

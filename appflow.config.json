@@ -1,0 +1,28 @@
+{
+  "apps": [
+    {
+      "appId": "calorie-ai",
+      "root": ".",
+      "platforms": ["ios"],
+      "framework": "capacitor"
+    }
+  ],
+  "environments": {
+    "production": {
+      "name": "Production",
+      "variables": {}
+    },
+    "development": {
+      "name": "Development", 
+      "variables": {}
+    }
+  },
+  "nativeConfigs": {
+    "ios": {
+      "buildType": "development",
+      "security": {
+        "profile": "development"
+      }
+    }
+  }
+}
