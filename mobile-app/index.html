@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="CalorieAI">
     <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
     <title>CalorieAI - Smart Nutrition Tracker</title>
     <link rel="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%3C/text%3E%3C/svg%3E">
     <style>
         * {
             margin: 0;
@@ -449,8 +451,8 @@
             <!-- Photo Upload -->
             <div class="card">
                 <h2>📸 Add Photo</h2>
-                <input type="file" id="camera" class="camera-input" accept="image/*" capture="environment">
-                <input type="file" id="gallery" class="camera-input" accept="image/*">
+                <input type="file" id="camera" class="camera-input" accept="image/*" capture="environment" multiple="false">
+                <input type="file" id="gallery" class="camera-input" accept="image/*" multiple="false">
                 <div class="photo-buttons">
                     <button class="button" onclick="takePhoto()">
                         📷 Take Photo
@@ -737,8 +739,16 @@
         
         // Enhanced photo capture functions
         function takePhoto() {
-            // Always use file input with camera capture
-            document.getElementById('camera').click();
+            const cameraInput = document.getElementById('camera');
+            
+            // Force camera capture on mobile devices
+            if (isMobileDevice()) {
+                // Set capture attribute dynamically for better mobile support
+                cameraInput.setAttribute('capture', 'environment');
+                cameraInput.setAttribute('accept', 'image/*');
+            }
+            
+            cameraInput.click();
         }
         
         function chooseFromGallery() {
