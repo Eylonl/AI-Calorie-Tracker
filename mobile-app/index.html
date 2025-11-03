@@ -1244,14 +1244,14 @@
                             </div>
                             <p><strong>Foods:</strong> ${meal.foods.join(', ')}</p>
                             <div style="margin-top: 0.5rem;">
-                                <button onclick="alert('Connect Supabase for full functionality')" style="background: #667eea; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-right: 0.5rem;">✏️ Edit</button>
-                                <button onclick="alert('Connect Supabase for full functionality')" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px;">🗑️ Delete</button>
+                                <button onclick="alert('Demo data - create database tables to enable full functionality')" style="background: #667eea; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-right: 0.5rem;">✏️ Edit</button>
+                                <button onclick="alert('Demo data - create database tables to enable full functionality')" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px;">🗑️ Delete</button>
                             </div>
                         </div>
                     `;
                 });
                 
-                historyDiv.innerHTML = mealsHTML || '<p>No meals logged for this date. <br><small>Connect Supabase for real data.</small></p>';
+                historyDiv.innerHTML = mealsHTML || '<p>No meals logged for this date. <br><small>Create database tables to enable real data.</small></p>';
                 dailyCaloriesSpan.textContent = totalCalories;
             }, 1000);
         }
