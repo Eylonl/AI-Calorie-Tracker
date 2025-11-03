@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalorieAI - Smart Nutrition Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 500px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 0.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            margin-top: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            text-align: left;
+        }
+        
+        .feature {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .feature h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ CalorieAI</h1>
+        <p>AI-powered calorie and nutrition tracking with photo analysis</p>
+        
+        <a href="./mobile-app/" class="button">📱 Launch Mobile App</a>
+        <a href="https://ai-calorie-tracker-eylonl.streamlit.app" class="button">🖥️ Streamlit Version</a>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>📸 Photo Analysis</h3>
+                <p>Take a photo of your meal and get instant AI-powered nutritional analysis</p>
+            </div>
+            <div class="feature">
+                <h3>📊 Nutrition Tracking</h3>
+                <p>Track calories, protein, carbs, fat, fiber, sugar, and sodium</p>
+            </div>
+            <div class="feature">
+                <h3>📱 Mobile Optimized</h3>
+                <p>Native-like mobile experience that works offline</p>
+            </div>
+            <div class="feature">
+                <h3>☁️ Cloud Sync</h3>
+                <p>Your meal history is saved securely in the cloud</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-redirect to mobile app on mobile devices
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            setTimeout(() => {
+                window.location.href = './mobile-app/';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
