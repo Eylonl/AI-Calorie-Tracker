@@ -1,14 +1,109 @@
 import streamlit as st
 import openai
 from PIL import Image
-import base64
-import io
 import json
-import os
+import base64
 from datetime import datetime, date
-import pandas as pd
-import hashlib
+from openai import OpenAI
 from supabase_client import SupabaseManager
+import os
+
+# API Endpoints for PWA
+def handle_api_requests():
+    """Handle API requests from PWA"""
+    query_params = st.experimental_get_query_params()
+    
+    if 'api' in query_params:
+        api_action = query_params.get('api', [None])[0]
+        
+        if api_action == 'get_supabase_config':
+            try:
+                config = {
+                    "supabase_url": st.secrets["SUPABASE_URL"],
+                    "supabase_anon_key": st.secrets["SUPABASE_ANON_KEY"],
+                    "features": {
+                        "supabase_enabled": True,
+                        "ai_analysis_enabled": True
+                    }
+                }
+                st.json(config)
+                st.stop()
+            except Exception as e:
+                st.json({"error": "Configuration not available"})
+                st.stop()
+                
+        elif api_action == 'analyze_photo':
+            try:
+                if 'image_data' in query_params:
+                    image_data = query_params['image_data'][0]
+                    
+                    # Initialize OpenAI client
+                    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+                    
+                    # Analyze the image
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": """Analyze this food image and provide a detailed nutritional breakdown. You MUST respond with ONLY valid JSON in exactly this format:
+
+{
+    "foods": [
+        {
+            "name": "food item name",
+            "portion_size": "estimated portion (e.g., '1 cup', '150g', '1 medium')",
+            "calories": 200,
+            "protein": 15.5,
+            "carbs": 25.0,
+            "fat": 8.0,
+            "fiber": 3.0,
+            "sugar": 5.0,
+            "sodium": 150.0,
+            "confidence": 85
+        }
+    ],
+    "total_calories": 200,
+    "notes": "any additional observations about the meal"
+}"""
+                                    },
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": f"data:image/jpeg;base64,{image_data}"
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        max_tokens=1000
+                    )
+                    
+                    # Parse and return the response
+                    analysis_result = json.loads(response.choices[0].message.content)
+                    st.json(analysis_result)
+                    st.stop()
+                else:
+                    st.json({"error": "No image data provided"})
+                    st.stop()
+                    
+            except Exception as e:
+                st.json({"error": str(e)})
+                st.stop()
+                
+        elif api_action == 'health':
+            st.json({
+                "status": "healthy",
+                "timestamp": datetime.now().isoformat(),
+                "service": "CalorieAI API"
+            })
+            st.stop()
+
+# Handle API requests first, before any UI
+handle_api_requests()
 
 # Page configuration optimized for mobile/iPhone
 st.set_page_config(
