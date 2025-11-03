@@ -1596,22 +1596,45 @@
                     <div class="edit-foods">
                         ${meal.foods.map((food, index) => `
                             <div class="edit-food-item" style="margin: 0.5rem 0; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 4px;">
-                                <input type="text" value="${food.name}" placeholder="Food name" style="width: 100%; margin: 0.25rem 0; padding: 0.5rem;">
-                                <input type="text" value="${food.portion_size}" placeholder="Portion" style="width: 100%; margin: 0.25rem 0; padding: 0.5rem;">
+                                <label style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Food Name:</label>
+                                <input type="text" value="${food.name}" placeholder="Food name" style="width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">
+                                
+                                <label style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Portion Size:</label>
+                                <input type="text" value="${food.portion_size}" placeholder="e.g., 1 cup, 150g" style="width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">
+                                
                                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin: 0.25rem 0;">
-                                    <input type="number" value="${food.calories}" placeholder="Calories" style="padding: 0.5rem;">
-                                    <input type="number" value="${food.protein}" placeholder="Protein" step="0.1" style="padding: 0.5rem;">
-                                    <input type="number" value="${food.carbs}" placeholder="Carbs" step="0.1" style="padding: 0.5rem;">
+                                    <div>
+                                        <label style="font-weight: 600; display: block; margin-bottom: 0.25rem; font-size: 0.9rem;">Calories:</label>
+                                        <input type="number" value="${food.calories}" placeholder="Calories" style="width: 100%; padding: 0.5rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-weight: 600; display: block; margin-bottom: 0.25rem; font-size: 0.9rem;">Protein (g):</label>
+                                        <input type="number" value="${food.protein}" placeholder="Protein" step="0.1" style="width: 100%; padding: 0.5rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-weight: 600; display: block; margin-bottom: 0.25rem; font-size: 0.9rem;">Carbs (g):</label>
+                                        <input type="number" value="${food.carbs}" placeholder="Carbs" step="0.1" style="width: 100%; padding: 0.5rem;">
+                                    </div>
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin: 0.25rem 0;">
-                                    <input type="number" value="${food.fat}" placeholder="Fat" step="0.1" style="padding: 0.5rem;">
-                                    <input type="number" value="${food.fiber}" placeholder="Fiber" step="0.1" style="padding: 0.5rem;">
-                                    <input type="number" value="${food.sodium}" placeholder="Sodium" step="0.1" style="padding: 0.5rem;">
+                                    <div>
+                                        <label style="font-weight: 600; display: block; margin-bottom: 0.25rem; font-size: 0.9rem;">Fat (g):</label>
+                                        <input type="number" value="${food.fat}" placeholder="Fat" step="0.1" style="width: 100%; padding: 0.5rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-weight: 600; display: block; margin-bottom: 0.25rem; font-size: 0.9rem;">Fiber (g):</label>
+                                        <input type="number" value="${food.fiber}" placeholder="Fiber" step="0.1" style="width: 100%; padding: 0.5rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-weight: 600; display: block; margin-bottom: 0.25rem; font-size: 0.9rem;">Sodium (mg):</label>
+                                        <input type="number" value="${food.sodium}" placeholder="Sodium" step="0.1" style="width: 100%; padding: 0.5rem;">
+                                    </div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
-                    <textarea placeholder="Notes" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">${meal.notes || ''}</textarea>
+                    <label style="font-weight: 600; display: block; margin-bottom: 0.25rem; margin-top: 0.5rem;">Notes:</label>
+                    <textarea placeholder="Add any notes about this meal..." style="width: 100%; margin-bottom: 0.5rem; padding: 0.5rem; min-height: 60px;">${meal.notes || ''}</textarea>
                     <div style="margin-top: 1rem;">
                         <button onclick="saveInlineEdit('${mealId}')" style="background: #38a169; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; margin-right: 0.5rem;">✅ Save Changes</button>
                         <button onclick="cancelInlineEdit('${mealId}')" style="background: #718096; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px;">❌ Cancel</button>
