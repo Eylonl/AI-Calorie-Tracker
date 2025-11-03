@@ -3,9 +3,10 @@
 
 export default async function handler(req, res) {
     // Enable CORS for your PWA domain
-    res.setHeader('Access-Control-Allow-Origin', 'https://eylonl.github.io');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS, GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
     
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
