@@ -446,7 +446,11 @@
                 </div>
                 
                 <img id="photo-preview" class="photo-preview" style="display: none;">
-                <!-- AI Analysis disabled -->
+                <button id="analyze-btn" class="button" style="display: none;" onclick="analyzeMeal()">
+                    🤖 Analyze with AI
+                </button>
+                
+                <!-- AI Analysis disabled message (fallback) -->
                 <div id="ai-disabled" style="display: none; padding: 1rem; background: #f7fafc; border-radius: 8px; margin: 1rem 0;">
                     <p>🤖 <strong>AI Analysis Not Available</strong></p>
                     <p>Please enter meal details manually below.</p>
@@ -793,8 +797,12 @@
                 preview.src = URL.createObjectURL(file);
                 preview.style.display = 'block';
                 
-                // Show AI disabled message
-                document.getElementById('ai-disabled').style.display = 'block';
+                // Show analyze button if AI is enabled
+                if (window.CONFIG && window.CONFIG.FEATURES.AI_ANALYSIS_ENABLED) {
+                    document.getElementById('analyze-btn').style.display = 'block';
+                } else {
+                    document.getElementById('ai-disabled').style.display = 'block';
+                }
             }
         }
         
@@ -844,13 +852,34 @@
                 </div>
             `;
             
-            // AI analysis is disabled - show manual entry message
-            resultDiv.innerHTML = `
-                <div class="error">
-                    <p>🤖 AI photo analysis not available</p>
-                    <p>Please enter meal details manually below.</p>
-                </div>
-            `;
+            if (window.CONFIG && window.CONFIG.FEATURES.AI_ANALYSIS_ENABLED && window.CONFIG.FEATURES.USE_VERCEL_API) {
+                try {
+                    // Convert image to base64
+                    const base64Image = await convertImageToBase64(currentPhoto);
+                    
+                    // Call Vercel API
+                    const analysis = await callVercelAPI(base64Image);
+                    
+                    // Display results
+                    displayAnalysisResults(analysis);
+                    
+                } catch (error) {
+                    console.error('AI analysis error:', error);
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <p>❌ AI analysis failed: ${error.message}</p>
+                            <p>Please enter meal details manually below.</p>
+                        </div>
+                    `;
+                }
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <p>🤖 AI photo analysis not configured</p>
+                        <p>Please set up Vercel API endpoint in config.js</p>
+                    </div>
+                `;
+            }
         }
         
         
@@ -911,9 +940,27 @@
             });
         }
         
+        async function callVercelAPI(base64Image) {
+            const response = await fetch(`${window.CONFIG.VERCEL_API_URL}/api/analyze-photo`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    imageData: base64Image
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+            
+            return await response.json();
+        }
+        
         async function callOpenAIVision(base64Image) {
-            // AI analysis not available - throw error
-            throw new Error("AI photo analysis not available. Please enter meal details manually.");
+            // Legacy function - now uses Vercel API
+            return await callVercelAPI(base64Image);
         }
         
         // Save meal
@@ -921,6 +968,7 @@
             alert('Meal saved! 🎉');
             // Reset form
             document.getElementById('photo-preview').style.display = 'none';
+            document.getElementById('analyze-btn').style.display = 'none';
             document.getElementById('ai-disabled').style.display = 'none';
             document.getElementById('analysis-result').style.display = 'none';
             document.getElementById('camera').value = '';
