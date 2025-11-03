@@ -10,8 +10,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
     <title>CalorieAI - Smart Nutrition Tracker</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍽️%3C/text%3E%3C/svg%3E">
     <link rel="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍽️%3C/text%3E%3C/svg%3E">
     <style>
         * {
             margin: 0;
@@ -1329,21 +1330,21 @@
                     const today = new Date().toISOString().split('T')[0];
                     const { data: meals, error } = await supabase
                         .from('meals')
-                        .select('*')
+                        .select(`
+                            total_calories,
+                            foods (protein, carbs, fat)
+                        `)
                         .eq('user_id', 'default_user')
                         .eq('date', today);
                     
                     if (!error && meals) {
                         meals.forEach(meal => {
                             totals.calories += meal.total_calories || 0;
-                            // Parse foods JSON if it exists
-                            if (meal.foods && Array.isArray(meal.foods)) {
-                                meal.foods.forEach(food => {
-                                    totals.protein += food.protein || 0;
-                                    totals.carbs += food.carbs || 0;
-                                    totals.fat += food.fat || 0;
-                                });
-                            }
+                            meal.foods.forEach(food => {
+                                totals.protein += food.protein || 0;
+                                totals.carbs += food.carbs || 0;
+                                totals.fat += food.fat || 0;
+                            });
                         });
                     }
                 } catch (error) {

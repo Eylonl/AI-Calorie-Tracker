@@ -8,7 +8,7 @@ const CONFIG = {
     // Supabase Configuration - Add your credentials here to bypass CORS
     // TODO: Replace with your actual Supabase credentials
     SUPABASE_URL: 'https://enamodyuntmxqhjfhgmt.supabase.co',
-    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjaG14eW9ldGpzdWp4c3pvaHRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyMzA1ODEsImV4cCI6MjA3MDgwNjU4MX0.gaZcAtXpX3nFwCZJkHNvircwG2WQduehWE3Yv_pCz9c',
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuYW1vZHl1bnRteHFoamZoZ210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMDMyNzQsImV4cCI6MjA3NzY3OTI3NH0.UQExdZDJzh_1CgUzDuLJRvxJs4_V6x1izQfueFaw1QQ',
     
     // App Configuration
     APP_NAME: 'CalorieAI',
