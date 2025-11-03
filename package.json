@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vercel dev",
-    "build": "echo 'Build complete'",
+    "build": "node build.js",
     "deploy": "vercel --prod"
   },
   "keywords": [
