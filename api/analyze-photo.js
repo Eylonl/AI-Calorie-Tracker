@@ -24,6 +24,14 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'No image data provided' });
         }
         
+        // Check if OpenAI API key is configured
+        if (!process.env.OPENAI_API_KEY) {
+            return res.status(500).json({ 
+                error: 'OpenAI API key not configured',
+                details: 'Please set OPENAI_API_KEY environment variable in Vercel'
+            });
+        }
+        
         // Initialize OpenAI with secret from environment
         const { OpenAI } = await import('openai');
         const openai = new OpenAI({
@@ -32,7 +40,7 @@ export default async function handler(req, res) {
         
         // Analyze the image
         const response = await openai.chat.completions.create({
-            model: "gpt-4-vision-preview",
+            model: "gpt-4o",
             messages: [
                 {
                     role: "user",
