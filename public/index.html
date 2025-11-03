@@ -405,7 +405,7 @@
         <div class="tabs">
             <button class="tab active" onclick="showTab('log')">Log Meal</button>
             <button class="tab" onclick="showTab('history')">History</button>
-            <button class="tab" onclick="showTab('analytics')">Analytics</button>
+            <button class="tab" onclick="showTab('settings')">Settings</button>
         </div>
         
         <div id="log-tab" class="tab-content active">
@@ -539,7 +539,7 @@
             </div>
         </div>
         
-        <div id="analytics-tab" class="tab-content">
+        <div id="settings-tab" class="tab-content">
             <!-- Goals -->
             <div class="card">
                 <h2>🎯 Daily Goals</h2>
@@ -656,7 +656,10 @@
             // Activate the corresponding tab button
             const tabButtons = document.querySelectorAll('.tab');
             tabButtons.forEach(btn => {
-                if (btn.textContent.toLowerCase().includes(tabName === 'log' ? 'log meal' : tabName)) {
+                const buttonText = btn.textContent.toLowerCase();
+                if ((tabName === 'log' && buttonText.includes('log meal')) ||
+                    (tabName === 'history' && buttonText.includes('history')) ||
+                    (tabName === 'settings' && buttonText.includes('settings'))) {
                     btn.classList.add('active');
                 }
             });
@@ -667,7 +670,7 @@
                 updateDateDisplay();
                 // Load nutrition progress for the current date
                 calculateTodaysNutrition();
-            } else if (tabName === 'analytics') {
+            } else if (tabName === 'settings') {
                 loadAnalytics();
             }
         }
