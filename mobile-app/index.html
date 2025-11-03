@@ -433,9 +433,6 @@
                     <button class="button" onclick="chooseFromGallery()">
                         🖼️ Choose from Gallery
                     </button>
-                    <button class="button" onclick="useWebCamera()" id="webcam-btn" style="display: none;">
-                        📹 Use Web Camera
-                    </button>
                 </div>
                 
                 <!-- Web Camera Video Element -->
@@ -692,10 +689,6 @@
         function checkCameraSupport() {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 cameraSupported = true;
-                // Show web camera option on desktop/devices that support it
-                if (!isMobileDevice()) {
-                    document.getElementById('webcam-btn').style.display = 'inline-block';
-                }
             } else {
                 console.log('Camera not supported on this device');
             }
@@ -707,13 +700,8 @@
         
         // Enhanced photo capture functions
         function takePhoto() {
-            if (isMobileDevice()) {
-                // On mobile, use file input with camera capture
-                document.getElementById('camera').click();
-            } else {
-                // On desktop, offer web camera option
-                useWebCamera();
-            }
+            // Always use file input with camera capture
+            document.getElementById('camera').click();
         }
         
         function chooseFromGallery() {
