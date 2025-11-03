@@ -12,10 +12,10 @@ async function analyzeTextDescription(req, res, foodDescription) {
             });
         }
 
-        // Initialize OpenAI with secret from environment (same as image analysis)
+        // Initialize OpenAI with secret from environment
         const { OpenAI } = await import('openai');
         const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
+            apiKey: process.env.OPENAI_API_KEY
         });
 
         const response = await openai.chat.completions.create({
