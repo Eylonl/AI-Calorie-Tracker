@@ -982,31 +982,63 @@
             }
             
             try {
-                // Create meal entry from AI analysis
+                // Create meal entry (without foods array)
                 const mealEntry = {
                     date: selectedMealDate.toISOString().split('T')[0],
                     timestamp: new Date().toISOString(),
                     meal_type: selectedMealType,
                     total_calories: analysis.total_calories || 0,
                     notes: analysis.notes || '',
-                    foods: analysis.foods || [],
                     user_id: 'default_user'
                 };
                 
                 console.log('Saving AI analysis to Supabase:', mealEntry);
                 
                 if (supabase) {
-                    const { data, error } = await supabase
+                    // First, save the meal
+                    const { data: mealData, error: mealError } = await supabase
                         .from('meals')
-                        .insert([mealEntry]);
+                        .insert([mealEntry])
+                        .select();
                     
-                    if (error) {
-                        console.error('Error saving AI analysis:', error);
-                        alert('Error saving meal: ' + error.message);
+                    if (mealError) {
+                        console.error('Error saving meal:', mealError);
+                        alert('Error saving meal: ' + mealError.message);
                         return;
                     }
                     
-                    console.log('AI analysis saved successfully:', data);
+                    const mealId = mealData[0].id;
+                    console.log('Meal saved with ID:', mealId);
+                    
+                    // Then, save each food item
+                    if (analysis.foods && analysis.foods.length > 0) {
+                        const foodEntries = analysis.foods.map(food => ({
+                            meal_id: mealId,
+                            name: food.name || 'Unknown Food',
+                            portion_size: food.portion_size || '1 serving',
+                            calories: food.calories || 0,
+                            protein: food.protein || 0,
+                            carbs: food.carbs || 0,
+                            fat: food.fat || 0,
+                            fiber: food.fiber || 0,
+                            sugar: food.sugar || 0,
+                            sodium: food.sodium || 0,
+                            confidence: food.confidence || 50
+                        }));
+                        
+                        const { data: foodData, error: foodError } = await supabase
+                            .from('foods')
+                            .insert(foodEntries);
+                        
+                        if (foodError) {
+                            console.error('Error saving foods:', foodError);
+                            alert('Meal saved but error saving food details: ' + foodError.message);
+                            return;
+                        }
+                        
+                        console.log('Foods saved successfully:', foodData);
+                    }
+                    
                     alert('✅ AI analysis saved successfully!');
                     
                     // Refresh the meal history
