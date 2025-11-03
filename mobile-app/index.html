@@ -597,10 +597,39 @@
     </div>
     
     <!-- Configuration -->
-    <script src="./config.js"></script>
-    
     <!-- Supabase JavaScript SDK -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Inline config to avoid loading issues
+        const CONFIG = {
+            // Backend API Configuration
+            STREAMLIT_API_URL: 'https://ai-calorie-tracker-eylonl.streamlit.app',
+            
+            // Supabase Configuration
+            SUPABASE_URL: 'https://enamodyuntmxqhjfhgmt.supabase.co',
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuYW1vZHl1bnRteHFoamZoZ210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMDMyNzQsImV4cCI6MjA3NzY3OTI3NH0.UQExdZDJzh_1CgUzDuLJRvxJs4_V6x1izQfueFaw1QQ',
+            
+            // App Configuration
+            APP_NAME: 'CalorieAI',
+            VERSION: '1.0.0',
+            
+            // Vercel API Configuration
+            VERCEL_API_URL: 'https://ai-calorie-tracker-git-main-eylonls-projects.vercel.app',
+            
+            // Features
+            FEATURES: {
+                SUPABASE_ENABLED: true,
+                AI_ANALYSIS_ENABLED: true,
+                OFFLINE_MODE: true,
+                USE_BACKEND_API: true,
+                USE_VERCEL_API: true
+            }
+        };
+        
+        // Export for use in main app
+        window.CONFIG = CONFIG;
+    </script>
     
     <script>
         // Global variables
