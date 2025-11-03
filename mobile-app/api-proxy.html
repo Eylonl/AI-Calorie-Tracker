@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Proxy</title>
+</head>
+<body>
+    <script>
+        // Simple proxy to handle CORS issues with Streamlit
+        window.addEventListener('message', async function(event) {
+            if (event.origin !== 'https://eylonl.github.io') {
+                return; // Only accept messages from our PWA
+            }
+            
+            const { action, data, requestId } = event.data;
+            
+            if (action === 'analyze_photo') {
+                try {
+                    // Make request to Streamlit API
+                    const response = await fetch(`https://ai-calorie-tracker-eylonl.streamlit.app/?api=analyze_photo&image_data=${encodeURIComponent(data.imageData)}`);
+                    const result = await response.json();
+                    
+                    // Send result back to PWA
+                    event.source.postMessage({
+                        requestId: requestId,
+                        success: true,
+                        data: result
+                    }, event.origin);
+                } catch (error) {
+                    // Send error back to PWA
+                    event.source.postMessage({
+                        requestId: requestId,
+                        success: false,
+                        error: error.message
+                    }, event.origin);
+                }
+            }
+        });
+        
+        // Let parent know we're ready
+        if (window.parent !== window) {
+            window.parent.postMessage({ action: 'proxy_ready' }, 'https://eylonl.github.io');
+        }
+    </script>
+</body>
+</html>

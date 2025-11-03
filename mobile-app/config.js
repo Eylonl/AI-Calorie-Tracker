@@ -17,7 +17,7 @@ const CONFIG = {
     // Features
     FEATURES: {
         SUPABASE_ENABLED: false, // Set to true after adding your credentials above
-        AI_ANALYSIS_ENABLED: false, // AI will still use backend API
+        AI_ANALYSIS_ENABLED: true, // AI will use backend API (when CORS is fixed)
         OFFLINE_MODE: true,
         USE_BACKEND_API: true  // Use Streamlit backend for AI calls only
     }
