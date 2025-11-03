@@ -656,8 +656,18 @@
             });
             
             // Show selected tab
-            document.getElementById(tabName + '-tab').classList.add('active');
-            event.target.classList.add('active');
+            const targetTab = document.getElementById(tabName + '-tab');
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            // Activate the corresponding tab button
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(tabName === 'log' ? 'log meal' : tabName)) {
+                    btn.classList.add('active');
+                }
+            });
             
             if (tabName === 'history') {
                 initHistoryDatePicker();
@@ -1575,20 +1585,25 @@
                     return;
                 }
                 
-                // Switch to Add tab
-                showTab('add');
+                // Switch to Log Meal tab
+                showTab('log');
                 
                 // Set meal type and date
                 selectedMealType = meal.meal_type;
                 selectedMealDate = new Date(meal.date);
                 
                 // Update meal type buttons
-                document.querySelectorAll('.meal-type-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                    if (btn.textContent.includes(meal.meal_type)) {
-                        btn.classList.add('active');
-                    }
-                });
+                const mealTypeBtns = document.querySelectorAll('.meal-type-btn');
+                if (mealTypeBtns.length > 0) {
+                    mealTypeBtns.forEach(btn => {
+                        if (btn && btn.classList) {
+                            btn.classList.remove('active');
+                            if (btn.textContent && btn.textContent.includes(meal.meal_type)) {
+                                btn.classList.add('active');
+                            }
+                        }
+                    });
+                }
                 
                 // Show manual entry form
                 showManualEntry();
