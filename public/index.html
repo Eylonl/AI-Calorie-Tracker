@@ -1228,7 +1228,7 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    image: base64Image
+                    image: `data:image/jpeg;base64,${base64Image}`
                 })
             });
             
