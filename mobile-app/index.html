@@ -446,9 +446,11 @@
                 </div>
                 
                 <img id="photo-preview" class="photo-preview" style="display: none;">
-                <button id="analyze-btn" class="button" style="display: none;" onclick="analyzeMeal()">
-                    🤖 Analyze with AI
-                </button>
+                <!-- AI Analysis disabled -->
+                <div id="ai-disabled" style="display: none; padding: 1rem; background: #f7fafc; border-radius: 8px; margin: 1rem 0;">
+                    <p>🤖 <strong>AI Analysis Not Available</strong></p>
+                    <p>Please enter meal details manually below.</p>
+                </div>
                 
                 <!-- Camera Status -->
                 <div id="camera-status" style="display: none; padding: 1rem; background: #f7fafc; border-radius: 8px; margin: 1rem 0;">
@@ -787,14 +789,12 @@
             const file = e.target.files[0];
             if (file) {
                 currentPhoto = file;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('photo-preview');
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    document.getElementById('analyze-btn').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+                const preview = document.getElementById('photo-preview');
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+                
+                // Show AI disabled message
+                document.getElementById('ai-disabled').style.display = 'block';
             }
         }
         
@@ -921,7 +921,7 @@
             alert('Meal saved! 🎉');
             // Reset form
             document.getElementById('photo-preview').style.display = 'none';
-            document.getElementById('analyze-btn').style.display = 'none';
+            document.getElementById('ai-disabled').style.display = 'none';
             document.getElementById('analysis-result').style.display = 'none';
             document.getElementById('camera').value = '';
         }
