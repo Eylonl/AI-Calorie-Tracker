@@ -1,0 +1,68 @@
+name: Deploy CalorieAI PWA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Create config with secrets
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      run: |
+        # Create config.js with actual secrets
+        cat > mobile-app/config.js << EOF
+        // CalorieAI PWA Configuration - Generated from GitHub Secrets
+        
+        const CONFIG = {
+            // Backend API Configuration
+            STREAMLIT_API_URL: 'https://ai-calorie-tracker-eylonl.streamlit.app',
+            
+            // Supabase Configuration - From GitHub Secrets
+            SUPABASE_URL: '${{ secrets.SUPABASE_URL }}',
+            SUPABASE_ANON_KEY: '${{ secrets.SUPABASE_ANON_KEY }}',
+            
+            // App Configuration
+            APP_NAME: 'CalorieAI',
+            VERSION: '1.0.0',
+            
+            // Features
+            FEATURES: {
+                SUPABASE_ENABLED: true,
+                AI_ANALYSIS_ENABLED: false, // Will be enabled when we add serverless function
+                OFFLINE_MODE: true,
+                USE_BACKEND_API: false
+            }
+        };
+        
+        // Export for use in main app
+        window.CONFIG = CONFIG;
+        EOF
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./mobile-app
+        destination_dir: mobile-app
+    
+    - name: Deploy landing page
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./
+        exclude_assets: '.github,mobile-app'

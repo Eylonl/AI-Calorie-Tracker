@@ -13,17 +13,26 @@ def handle_api_requests():
     """Handle API requests from PWA"""
     query_params = st.query_params
     
-    # Debug: Show all query params
-    st.write("DEBUG - Query params:", dict(query_params))
-    
     if 'api' in query_params:
         api_action = query_params.get('api')
-        st.write("DEBUG - API action:", api_action)
+        
+        # Add CORS headers for PWA access
+        st.markdown("""
+        <script>
+        // Add CORS headers to allow PWA access
+        if (window.parent !== window) {
+            // This is in an iframe, add headers via JavaScript
+            const response = new Response();
+            response.headers.set('Access-Control-Allow-Origin', 'https://eylonl.github.io');
+            response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+            response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+        }
+        </script>
+        """, unsafe_allow_html=True)
         
         if api_action == 'get_supabase_config':
             try:
-                # Debug: Check if secrets exist
-                st.write("DEBUG - Checking secrets...")
+                # Check if secrets exist
                 supabase_url = st.secrets.get("SUPABASE_URL", "NOT_FOUND")
                 supabase_key = st.secrets.get("SUPABASE_ANON_KEY", "NOT_FOUND")
                 
@@ -31,7 +40,7 @@ def handle_api_requests():
                     "supabase_url": supabase_url,
                     "supabase_anon_key": supabase_key,
                     "features": {
-                        "supabase_enabled": True,
+                        "supabase_enabled": supabase_url != "NOT_FOUND",
                         "ai_analysis_enabled": True
                     }
                 }

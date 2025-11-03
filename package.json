@@ -1,18 +1,17 @@
 {
-  "name": "calorie-ai",
+  "name": "ai-calorie-tracker",
   "version": "1.0.0",
   "description": "AI-powered calorie tracking app",
   "main": "index.js",
   "scripts": {
-    "build": "node build.js && npx cap sync",
-    "capacitor:add:ios": "npx cap add ios",
-    "capacitor:run:ios": "npx cap run ios",
-    "capacitor:build": "npm run build",
-    "capacitor:open:ios": "npx cap open ios"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vercel dev",
+    "build": "echo 'Build complete'",
+    "deploy": "vercel --prod"
   },
   "keywords": [
     "calorie",
-    "nutrition",
+    "tracker",
     "ai",
     "health",
     "mobile"
@@ -31,6 +30,7 @@
     "@capacitor/haptics": "^5.0.6",
     "@capacitor/ios": "^5.5.1",
     "@capacitor/keyboard": "^5.0.6",
-    "@capacitor/status-bar": "^5.0.6"
+    "@capacitor/status-bar": "^5.0.6",
+    "openai": "^4.20.1"
   }
 }
