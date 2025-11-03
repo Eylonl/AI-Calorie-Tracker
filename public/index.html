@@ -1446,11 +1446,17 @@
                 if (error) {
                     console.error('Error loading meals:', error);
                     historyDiv.innerHTML = `<p>Error loading meals: ${error.message}</p>`;
+                    
+                    // Reset nutrition progress bars to zero on error
+                    calculateTodaysNutrition();
                     return;
                 }
                 
                 if (!meals || meals.length === 0) {
                     historyDiv.innerHTML = '<p>No meals logged for this date.</p>';
+                    
+                    // Reset nutrition progress bars to zero
+                    calculateTodaysNutrition();
                     return;
                 }
                 
