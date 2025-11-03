@@ -167,6 +167,12 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'No image provided' });
         }
         
+        // Extract base64 data from data URL if needed
+        let imageData = image;
+        if (image.startsWith('data:image/')) {
+            imageData = image.split(',')[1];
+        }
+        
         // Check if OpenAI API key is configured
         if (!process.env.OPENAI_API_KEY) {
             return res.status(500).json({ 
