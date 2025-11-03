@@ -1,33 +1,36 @@
-name: Deploy CalorieAI PWA
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-    
-    - name: Verify config
-      run: |
-        # Just verify the config.js exists and show its contents
-        echo "Using local config.js file with correct Vercel URL:"
-        cat mobile-app/config.js
-    
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./mobile-app
-        force_orphan: true
-        destination_dir: .
+# GitHub Pages deployment disabled - using Vercel only
+# This prevents redundant deployments and URL conflicts
+# 
+# name: Deploy CalorieAI PWA
+# 
+# on:
+#   push:
+#     branches: [ main ]
+#   workflow_dispatch:
+# 
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
+#     
+#     - name: Setup Node.js
+#       uses: actions/setup-node@v4
+#       with:
+#         node-version: '18'
+#     
+#     - name: Verify config
+#       run: |
+#         # Just verify the config.js exists and show its contents
+#         echo "Using local config.js file with correct Vercel URL:"
+#         cat mobile-app/config.js
+#     
+#     - name: Deploy to GitHub Pages
+#       uses: peaceiris/actions-gh-pages@v4
+#       with:
+#         github_token: ${{ secrets.GITHUB_TOKEN }}
+#         publish_dir: ./mobile-app
+#         force_orphan: true
+#         destination_dir: .
