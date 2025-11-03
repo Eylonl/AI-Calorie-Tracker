@@ -1225,15 +1225,21 @@
                 let totalCalories = 0;
                 
                 foodItems.forEach(item => {
-                    const name = item.querySelector('input[placeholder="Food name"]').value;
-                    const portion = item.querySelector('input[placeholder*="Portion"]').value;
-                    const calories = parseFloat(item.querySelector('input[placeholder="Calories"]').value) || 0;
-                    const protein = parseFloat(item.querySelector('input[placeholder*="Protein"]').value) || 0;
-                    const carbs = parseFloat(item.querySelector('input[placeholder*="Carbs"]').value) || 0;
-                    const fat = parseFloat(item.querySelector('input[placeholder*="Fat"]').value) || 0;
-                    const fiber = parseFloat(item.querySelector('input[placeholder*="Fiber"]').value) || 0;
-                    const sugar = parseFloat(item.querySelector('input[placeholder*="Sugar"]').value) || 0;
-                    const sodium = parseFloat(item.querySelector('input[placeholder*="Sodium"]').value) || 0;
+                    // Get the item ID from any input in this food item
+                    const firstInput = item.querySelector('input[id$="-name"]');
+                    if (!firstInput) return; // Skip if no valid input found
+                    
+                    const itemId = firstInput.id.replace('-name', '');
+                    
+                    const name = document.getElementById(`${itemId}-name`)?.value || '';
+                    const portion = document.getElementById(`${itemId}-portion`)?.value || '';
+                    const calories = parseFloat(document.getElementById(`${itemId}-calories`)?.value) || 0;
+                    const protein = parseFloat(document.getElementById(`${itemId}-protein`)?.value) || 0;
+                    const carbs = parseFloat(document.getElementById(`${itemId}-carbs`)?.value) || 0;
+                    const fat = parseFloat(document.getElementById(`${itemId}-fat`)?.value) || 0;
+                    const fiber = parseFloat(document.getElementById(`${itemId}-fiber`)?.value) || 0;
+                    const sugar = parseFloat(document.getElementById(`${itemId}-sugar`)?.value) || 0;
+                    const sodium = parseFloat(document.getElementById(`${itemId}-sodium`)?.value) || 0;
                     
                     if (name.trim()) {
                         foods.push({
