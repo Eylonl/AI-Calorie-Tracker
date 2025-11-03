@@ -16,12 +16,19 @@ def handle_api_requests():
     if 'api' in query_params:
         api_action = query_params.get('api')
         
-        # Add CORS headers for PWA access
+        # Set CORS headers for PWA access
         st.markdown("""
         <script>
-        // Add CORS headers to allow PWA access
-        if (window.parent !== window) {
-            // This is in an iframe, add headers via JavaScript
+        // Set response headers for CORS
+        if (window.parent) {
+            window.parent.postMessage({
+                type: 'cors-headers',
+                headers: {
+                    'Access-Control-Allow-Origin': 'https://eylonl.github.io',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                }
+            }, '*');
             const response = new Response();
             response.headers.set('Access-Control-Allow-Origin', 'https://eylonl.github.io');
             response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');

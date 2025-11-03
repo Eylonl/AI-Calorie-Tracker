@@ -3,8 +3,5 @@
     "api/analyze-photo.js": {
       "runtime": "@vercel/node@18.x"
     }
-  },
-  "env": {
-    "OPENAI_API_KEY": "@openai_api_key"
   }
 }
