@@ -951,14 +951,53 @@
             `;
         }
         
-        function useAIAnalysis(analysis) {
-            // Convert AI analysis to manual entry format
-            if (analysis) {
-                // Populate manual entry with AI results
-                showManualEntry();
-                // Pre-fill with AI data (implementation would go here)
+        async function useAIAnalysis(analysis) {
+            if (!analysis) {
+                alert('No analysis data available');
+                return;
             }
-            alert('AI analysis applied! You can now edit or save.');
+            
+            try {
+                // Create meal entry from AI analysis
+                const mealEntry = {
+                    date: selectedMealDate.toISOString().split('T')[0],
+                    timestamp: new Date().toISOString(),
+                    meal_type: selectedMealType,
+                    total_calories: analysis.total_calories || 0,
+                    notes: analysis.notes || '',
+                    foods: analysis.foods || [],
+                    user_id: 'default_user'
+                };
+                
+                console.log('Saving AI analysis to Supabase:', mealEntry);
+                
+                if (supabase) {
+                    const { data, error } = await supabase
+                        .from('meals')
+                        .insert([mealEntry]);
+                    
+                    if (error) {
+                        console.error('Error saving AI analysis:', error);
+                        alert('Error saving meal: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('AI analysis saved successfully:', data);
+                    alert('✅ AI analysis saved successfully!');
+                    
+                    // Refresh the meal history
+                    loadMealHistory();
+                    
+                    // Reset the form
+                    resetMealForm();
+                } else {
+                    alert('Supabase not connected. Please check your configuration.');
+                }
+                
+            } catch (error) {
+                console.error('Error in useAIAnalysis:', error);
+                alert('Error saving AI analysis: ' + error.message);
+            }
         }
         
         async function convertImageToBase64(file) {
