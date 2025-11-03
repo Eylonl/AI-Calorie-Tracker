@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         
         // Analyze the image
         const response = await openai.chat.completions.create({
-            model: "gpt-4o",
+            model: "gpt-4-vision-preview",
             messages: [
                 {
                     role: "user",

@@ -3,15 +3,5 @@
     "api/analyze-photo.js": {
       "maxDuration": 30
     }
-  },
-  "rewrites": [
-    {
-      "source": "/mobile-app/(.*)",
-      "destination": "/mobile-app/$1"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ]
+  }
 }
