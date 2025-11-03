@@ -525,6 +525,27 @@
                                 </div>
                                 <span id="fat-text">0g / 65g</span>
                             </div>
+                            <div class="progress-item">
+                                <span>Fiber</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="fiber-progress"></div>
+                                </div>
+                                <span id="fiber-text">0g / 25g</span>
+                            </div>
+                            <div class="progress-item">
+                                <span>Sugar</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="sugar-progress"></div>
+                                </div>
+                                <span id="sugar-text">0g / 50g</span>
+                            </div>
+                            <div class="progress-item">
+                                <span>Sodium</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="sodium-progress"></div>
+                                </div>
+                                <span id="sodium-text">0mg / 2300mg</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -559,6 +580,18 @@
                     <div class="goal-item">
                         <label>Fat Goal (g):</label>
                         <input type="number" id="fat-goal" value="65" min="20" max="150">
+                    </div>
+                    <div class="goal-item">
+                        <label>Fiber Goal (g):</label>
+                        <input type="number" id="fiber-goal" value="25" min="10" max="50">
+                    </div>
+                    <div class="goal-item">
+                        <label>Sugar Goal (g):</label>
+                        <input type="number" id="sugar-goal" value="50" min="10" max="100">
+                    </div>
+                    <div class="goal-item">
+                        <label>Sodium Goal (mg):</label>
+                        <input type="number" id="sodium-goal" value="2300" min="1000" max="5000">
                     </div>
                     <button class="button" onclick="saveGoals()">💾 Save Goals</button>
                 </div>
@@ -1876,13 +1909,19 @@
                 calories: 2000,
                 protein: 150,
                 carbs: 250,
-                fat: 65
+                fat: 65,
+                fiber: 25,
+                sugar: 50,
+                sodium: 2300
             };
             
             document.getElementById('calorie-goal').value = goals.calories;
             document.getElementById('protein-goal').value = goals.protein;
             document.getElementById('carbs-goal').value = goals.carbs;
             document.getElementById('fat-goal').value = goals.fat;
+            document.getElementById('fiber-goal').value = goals.fiber;
+            document.getElementById('sugar-goal').value = goals.sugar;
+            document.getElementById('sodium-goal').value = goals.sodium;
         }
         
         async function saveGoals() {
@@ -1890,7 +1929,10 @@
                 calories: parseInt(document.getElementById('calorie-goal').value),
                 protein: parseInt(document.getElementById('protein-goal').value),
                 carbs: parseInt(document.getElementById('carbs-goal').value),
-                fat: parseInt(document.getElementById('fat-goal').value)
+                fat: parseInt(document.getElementById('fat-goal').value),
+                fiber: parseInt(document.getElementById('fiber-goal').value),
+                sugar: parseInt(document.getElementById('sugar-goal').value),
+                sodium: parseInt(document.getElementById('sodium-goal').value)
             };
             
             localStorage.setItem('nutritionGoals', JSON.stringify(goals));
@@ -1907,10 +1949,13 @@
                 calories: 2000,
                 protein: 150,
                 carbs: 250,
-                fat: 65
+                fat: 65,
+                fiber: 25,
+                sugar: 50,
+                sodium: 2300
             };
             
-            let totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+            let totals = { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, sodium: 0 };
             
             if (supabase) {
                 try {
@@ -1919,7 +1964,7 @@
                         .from('meals')
                         .select(`
                             total_calories,
-                            foods (protein, carbs, fat)
+                            foods (protein, carbs, fat, fiber, sugar, sodium)
                         `)
                         .eq('user_id', 'default_user')
                         .eq('date', dateStr);
@@ -1932,6 +1977,9 @@
                                     totals.protein += food.protein || 0;
                                     totals.carbs += food.carbs || 0;
                                     totals.fat += food.fat || 0;
+                                    totals.fiber += food.fiber || 0;
+                                    totals.sugar += food.sugar || 0;
+                                    totals.sodium += food.sodium || 0;
                                 });
                             }
                         });
@@ -1949,6 +1997,9 @@
             updateProgressBar('protein', totals.protein, goals.protein, 'g');
             updateProgressBar('carbs', totals.carbs, goals.carbs, 'g');
             updateProgressBar('fat', totals.fat, goals.fat, 'g');
+            updateProgressBar('fiber', totals.fiber, goals.fiber, 'g');
+            updateProgressBar('sugar', totals.sugar, goals.sugar, 'g');
+            updateProgressBar('sodium', totals.sodium, goals.sodium, 'mg');
         }
         
         function updateProgressBar(nutrient, current, goal, unit) {
