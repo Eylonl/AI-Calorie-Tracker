@@ -344,6 +344,38 @@
         .trend-item:last-child {
             border-bottom: none;
         }
+        
+        /* Camera interface styles */
+        #camera-video {
+            border: 2px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        #camera-controls {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        
+        #camera-controls .button {
+            flex: 1;
+            max-width: 150px;
+        }
+        
+        #camera-status {
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .photo-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+        
+        .photo-buttons .button {
+            margin-bottom: 0;
+        }
 
         @media (max-width: 480px) {
             .container {
@@ -395,17 +427,34 @@
                 <input type="file" id="camera" class="camera-input" accept="image/*" capture="environment">
                 <input type="file" id="gallery" class="camera-input" accept="image/*">
                 <div class="photo-buttons">
-                    <button class="button" onclick="document.getElementById('camera').click()">
+                    <button class="button" onclick="takePhoto()">
                         📷 Take Photo
                     </button>
-                    <button class="button" onclick="document.getElementById('gallery').click()">
+                    <button class="button" onclick="chooseFromGallery()">
                         🖼️ Choose from Gallery
                     </button>
+                    <button class="button" onclick="useWebCamera()" id="webcam-btn" style="display: none;">
+                        📹 Use Web Camera
+                    </button>
                 </div>
+                
+                <!-- Web Camera Video Element -->
+                <video id="camera-video" style="display: none; width: 100%; max-width: 300px; border-radius: 8px; margin: 1rem 0;"></video>
+                <canvas id="camera-canvas" style="display: none;"></canvas>
+                <div id="camera-controls" style="display: none; margin: 1rem 0;">
+                    <button class="button" onclick="capturePhoto()">📸 Capture</button>
+                    <button class="button" onclick="stopCamera()" style="background: #e53e3e;">❌ Cancel</button>
+                </div>
+                
                 <img id="photo-preview" class="photo-preview" style="display: none;">
                 <button id="analyze-btn" class="button" style="display: none;" onclick="analyzeMeal()">
                     🤖 Analyze with AI
                 </button>
+                
+                <!-- Camera Status -->
+                <div id="camera-status" style="display: none; padding: 1rem; background: #f7fafc; border-radius: 8px; margin: 1rem 0;">
+                    <p id="camera-message">Initializing camera...</p>
+                </div>
             </div>
 
             <!-- Manual Entry -->
@@ -608,7 +657,125 @@
             });
         });
         
-        // Camera and gallery functionality
+        // Camera functionality variables
+        let cameraStream = null;
+        let cameraSupported = false;
+        
+        // Initialize camera support detection
+        document.addEventListener('DOMContentLoaded', function() {
+            checkCameraSupport();
+        });
+        
+        function checkCameraSupport() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                cameraSupported = true;
+                // Show web camera option on desktop/devices that support it
+                if (!isMobileDevice()) {
+                    document.getElementById('webcam-btn').style.display = 'inline-block';
+                }
+            } else {
+                console.log('Camera not supported on this device');
+            }
+        }
+        
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        // Enhanced photo capture functions
+        function takePhoto() {
+            if (isMobileDevice()) {
+                // On mobile, use file input with camera capture
+                document.getElementById('camera').click();
+            } else {
+                // On desktop, offer web camera option
+                useWebCamera();
+            }
+        }
+        
+        function chooseFromGallery() {
+            document.getElementById('gallery').click();
+        }
+        
+        async function useWebCamera() {
+            const video = document.getElementById('camera-video');
+            const status = document.getElementById('camera-status');
+            const message = document.getElementById('camera-message');
+            const controls = document.getElementById('camera-controls');
+            
+            try {
+                status.style.display = 'block';
+                message.textContent = 'Requesting camera access...';
+                
+                // Request camera access with back camera preference on mobile
+                const constraints = {
+                    video: {
+                        facingMode: isMobileDevice() ? { ideal: 'environment' } : 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+                
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                video.srcObject = cameraStream;
+                video.style.display = 'block';
+                controls.style.display = 'block';
+                status.style.display = 'none';
+                
+                // Start video
+                await video.play();
+                
+            } catch (error) {
+                console.error('Camera access error:', error);
+                message.textContent = `Camera error: ${error.message}. Try using "Choose from Gallery" instead.`;
+                
+                // Hide video elements and show fallback
+                video.style.display = 'none';
+                controls.style.display = 'none';
+            }
+        }
+        
+        function capturePhoto() {
+            const video = document.getElementById('camera-video');
+            const canvas = document.getElementById('camera-canvas');
+            const preview = document.getElementById('photo-preview');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to video size
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame to canvas
+            ctx.drawImage(video, 0, 0);
+            
+            // Convert canvas to blob
+            canvas.toBlob(function(blob) {
+                currentPhoto = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+                
+                // Show preview
+                const url = URL.createObjectURL(blob);
+                preview.src = url;
+                preview.style.display = 'block';
+                document.getElementById('analyze-btn').style.display = 'block';
+                
+                // Clean up
+                stopCamera();
+            }, 'image/jpeg', 0.8);
+        }
+        
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            
+            document.getElementById('camera-video').style.display = 'none';
+            document.getElementById('camera-controls').style.display = 'none';
+            document.getElementById('camera-status').style.display = 'none';
+        }
+        
+        // File input handlers
         document.getElementById('camera').addEventListener('change', handlePhotoUpload);
         document.getElementById('gallery').addEventListener('change', handlePhotoUpload);
         

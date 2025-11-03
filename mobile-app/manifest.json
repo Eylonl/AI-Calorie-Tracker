@@ -23,5 +23,16 @@
   ],
   "categories": ["health", "lifestyle", "food", "medical"],
   "screenshots": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "permissions": ["camera", "storage"],
+  "features": [
+    {
+      "name": "camera",
+      "required": false
+    },
+    {
+      "name": "storage",
+      "required": false
+    }
+  ]
 }
