@@ -1222,13 +1222,13 @@
         }
         
         async function callVercelAPI(base64Image) {
-            const response = await fetch(`${window.CONFIG.VERCEL_API_URL}/api/analyze-photo`, {
+            const response = await fetch('/api/analyze-photo', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    imageData: base64Image
+                    image: base64Image
                 })
             });
             
