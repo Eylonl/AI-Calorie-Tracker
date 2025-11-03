@@ -1605,8 +1605,9 @@
                     });
                 }
                 
-                // Show manual entry form
-                showManualEntry();
+                // Show manual entry form (without analysis data)
+                const manualEntry = document.getElementById('manual-entry');
+                manualEntry.style.display = 'block';
                 
                 // Clear existing food items
                 const foodItems = document.getElementById('food-items');
