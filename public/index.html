@@ -1010,6 +1010,39 @@
                     const mealId = mealData[0].id;
                     console.log('Meal saved with ID:', mealId);
                     
+                    // Upload photo if available
+                    let photoUrl = null;
+                    if (currentPhoto) {
+                        try {
+                            const fileName = `${mealId}_${Date.now()}.jpg`;
+                            const { data: uploadData, error: uploadError } = await supabase.storage
+                                .from('meal-photos')
+                                .upload(fileName, currentPhoto, {
+                                    contentType: 'image/jpeg'
+                                });
+                            
+                            if (uploadError) {
+                                console.error('Photo upload error:', uploadError);
+                            } else {
+                                // Get public URL for the uploaded photo
+                                const { data: urlData } = supabase.storage
+                                    .from('meal-photos')
+                                    .getPublicUrl(fileName);
+                                
+                                photoUrl = urlData.publicUrl;
+                                console.log('Photo uploaded successfully:', photoUrl);
+                                
+                                // Update meal with photo URL
+                                await supabase
+                                    .from('meals')
+                                    .update({ photo_url: photoUrl })
+                                    .eq('id', mealId);
+                            }
+                        } catch (photoError) {
+                            console.error('Photo processing error:', photoError);
+                        }
+                    }
+                    
                     // Then, save each food item
                     if (analysis.foods && analysis.foods.length > 0) {
                         const foodEntries = analysis.foods.map(food => ({
@@ -1208,10 +1241,17 @@
                     
                     const foodsList = meal.foods.map(food => food.name).join(', ') || 'No foods listed';
                     
+                    // Add photo if available
+                    const photoHTML = meal.photo_url ? 
+                        `<div style="margin: 0.5rem 0;">
+                            <img src="${meal.photo_url}" alt="Meal photo" style="max-width: 200px; max-height: 150px; border-radius: 8px; object-fit: cover;">
+                        </div>` : '';
+                    
                     mealsHTML += `
                         <div class="meal-item">
                             <h3>${mealIcon} ${meal.meal_type} - ${mealTime}</h3>
                             <p><strong>${meal.total_calories || 0} calories</strong></p>
+                            ${photoHTML}
                             <div class="nutrition-info">
                                 <div>Protein: ${meal.foods.reduce((sum, f) => sum + (f.protein || 0), 0).toFixed(1)}g</div>
                                 <div>Carbs: ${meal.foods.reduce((sum, f) => sum + (f.carbs || 0), 0).toFixed(1)}g</div>
