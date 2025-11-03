@@ -1518,9 +1518,12 @@
                             <p><strong>${meal.total_calories || 0} calories</strong></p>
                             ${photoHTML}
                             <div class="nutrition-info">
-                                <div>Protein: ${meal.foods.reduce((sum, f) => sum + (f.protein || 0), 0).toFixed(1)}g</div>
-                                <div>Carbs: ${meal.foods.reduce((sum, f) => sum + (f.carbs || 0), 0).toFixed(1)}g</div>
-                                <div>Fat: ${meal.foods.reduce((sum, f) => sum + (f.fat || 0), 0).toFixed(1)}g</div>
+                                <div>Protein: ${(meal.foods || []).reduce((sum, f) => sum + (f.protein || 0), 0).toFixed(1)}g</div>
+                                <div>Carbs: ${(meal.foods || []).reduce((sum, f) => sum + (f.carbs || 0), 0).toFixed(1)}g</div>
+                                <div>Fat: ${(meal.foods || []).reduce((sum, f) => sum + (f.fat || 0), 0).toFixed(1)}g</div>
+                                <div>Fiber: ${(meal.foods || []).reduce((sum, f) => sum + (f.fiber || 0), 0).toFixed(1)}g</div>
+                                <div>Sugar: ${(meal.foods || []).reduce((sum, f) => sum + (f.sugar || 0), 0).toFixed(1)}g</div>
+                                <div>Sodium: ${(meal.foods || []).reduce((sum, f) => sum + (f.sodium || 0), 0).toFixed(0)}mg</div>
                             </div>
                             <p><strong>Foods:</strong> ${foodsList}</p>
                             <div style="margin-top: 0.5rem;">
