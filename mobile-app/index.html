@@ -247,41 +247,16 @@
             color: #667eea;
         }
         
-        .mini-calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
+        /* Date input styling for history */
+        #history-date {
+            border: 2px solid #e2e8f0;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #e2e8f0;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            min-height: 28px;
-            background: white;
-            transition: all 0.2s;
-        }
-        
-        .calendar-day:hover {
-            background: #f7fafc;
+        #history-date:focus {
+            outline: none;
             border-color: #667eea;
-        }
-        
-        .calendar-day.today {
-            background: #667eea;
-            color: white;
-        }
-        
-        .calendar-day.has-meals {
-            background: #e6fffa;
-            border-color: #38b2ac;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
         /* Analytics styles */
@@ -513,10 +488,10 @@
                 </div>
             </div>
 
-            <!-- Calendar View -->
+            <!-- Date Selection -->
             <div class="card">
-                <h4 style="margin-bottom: 0.5rem; color: #4a5568;">📅 Quick Date Selection</h4>
-                <div id="mini-calendar"></div>
+                <h4 style="margin-bottom: 0.5rem; color: #4a5568;">📅 Select Date</h4>
+                <input type="date" id="history-date" style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: border-color 0.2s;">
             </div>
 
             <!-- Daily Meals -->
@@ -686,9 +661,9 @@
             event.target.classList.add('active');
             
             if (tabName === 'history') {
+                initHistoryDatePicker();
                 loadMealHistory();
                 updateDateDisplay();
-                generateMiniCalendar();
             } else if (tabName === 'analytics') {
                 loadAnalytics();
             }
@@ -1082,57 +1057,32 @@
             }
         }
         
-        // Generate mini calendar
-        function generateMiniCalendar() {
-            const calendarDiv = document.getElementById('mini-calendar');
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        // Initialize history date picker
+        function initHistoryDatePicker() {
+            const historyDateInput = document.getElementById('history-date');
             
-            let calendarHTML = '';
+            // Set to current date if not already set
+            if (!historyDateInput.value) {
+                historyDateInput.value = currentDate.toISOString().split('T')[0];
+            }
             
-            // Day headers
-            const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-            dayHeaders.forEach(day => {
-                calendarHTML += `<div style="font-weight: 600; text-align: center; padding: 0.25rem; font-size: 0.7rem; color: #718096;">${day}</div>`;
+            // Listen for date changes
+            historyDateInput.addEventListener('change', function() {
+                currentDate = new Date(this.value);
+                updateDateDisplay();
+                loadMealHistory();
             });
             
-            // Empty cells for days before month starts
-            for (let i = 0; i < firstDay.getDay(); i++) {
-                calendarHTML += '<div style="min-height: 28px;"></div>';
-            }
+            // Add focus styling
+            historyDateInput.addEventListener('focus', function() {
+                this.style.borderColor = '#667eea';
+                this.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+            });
             
-            // Days of the month
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                const date = new Date(today.getFullYear(), today.getMonth(), day);
-                const isToday = date.toDateString() === today.toDateString();
-                const isSelected = date.toDateString() === currentDate.toDateString();
-                
-                let classes = 'calendar-day';
-                if (isToday) classes += ' today';
-                if (Math.random() > 0.8) classes += ' has-meals'; // Mock data - less frequent
-                
-                let style = '';
-                if (isSelected && !isToday) {
-                    style = 'border: 2px solid #667eea; font-weight: 600;';
-                }
-                
-                calendarHTML += `
-                    <div class="${classes}" onclick="selectDate(${day})" style="${style}">
-                        ${day}
-                    </div>
-                `;
-            }
-            
-            calendarDiv.innerHTML = calendarHTML;
-        }
-        
-        function selectDate(day) {
-            const today = new Date();
-            currentDate = new Date(today.getFullYear(), today.getMonth(), day);
-            updateDateDisplay();
-            generateMiniCalendar();
-            loadMealHistory();
+            historyDateInput.addEventListener('blur', function() {
+                this.style.borderColor = '#e2e8f0';
+                this.style.boxShadow = 'none';
+            });
         }
         
         // Load meal history from Supabase
