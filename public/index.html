@@ -1172,14 +1172,14 @@
                             meal_id: mealId,
                             name: food.name || 'Unknown Food',
                             portion_size: food.portion_size || '1 serving',
-                            calories: food.calories || 0,
-                            protein: food.protein || 0,
-                            carbs: food.carbs || 0,
-                            fat: food.fat || 0,
-                            fiber: food.fiber || 0,
-                            sugar: food.sugar || 0,
-                            sodium: food.sodium || 0,
-                            confidence: food.confidence || 50
+                            calories: Math.round(food.calories || 0), // INTEGER field
+                            protein: parseFloat(food.protein || 0),
+                            carbs: parseFloat(food.carbs || 0),
+                            fat: parseFloat(food.fat || 0),
+                            fiber: parseFloat(food.fiber || 0),
+                            sugar: parseFloat(food.sugar || 0),
+                            sodium: parseFloat(food.sodium || 0),
+                            confidence: Math.round(food.confidence || 50) // INTEGER field
                         }));
                         
                         const { data: foodData, error: foodError } = await supabase
@@ -1266,7 +1266,7 @@
                     
                     const name = document.getElementById(`${itemId}-name`)?.value || '';
                     const portion = document.getElementById(`${itemId}-portion`)?.value || '';
-                    const calories = parseFloat(document.getElementById(`${itemId}-calories`)?.value) || 0;
+                    const calories = Math.round(parseFloat(document.getElementById(`${itemId}-calories`)?.value) || 0);
                     const protein = parseFloat(document.getElementById(`${itemId}-protein`)?.value) || 0;
                     const carbs = parseFloat(document.getElementById(`${itemId}-carbs`)?.value) || 0;
                     const fat = parseFloat(document.getElementById(`${itemId}-fat`)?.value) || 0;
