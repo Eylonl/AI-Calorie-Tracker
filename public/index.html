@@ -489,8 +489,37 @@
                     <button onclick="changeDate(1)">Next →</button>
                 </div>
                 <div class="daily-summary">
-                    <div class="total-calories">
-                        <span id="daily-calories">0</span> calories
+                    <div id="daily-nutrition-summary">
+                        <div class="nutrition-progress">
+                            <div class="progress-item">
+                                <span>Calories</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="calories-progress"></div>
+                                </div>
+                                <span id="calories-text">0 / 2000</span>
+                            </div>
+                            <div class="progress-item">
+                                <span>Protein</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="protein-progress"></div>
+                                </div>
+                                <span id="protein-text">0g / 150g</span>
+                            </div>
+                            <div class="progress-item">
+                                <span>Carbs</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="carbs-progress"></div>
+                                </div>
+                                <span id="carbs-text">0g / 250g</span>
+                            </div>
+                            <div class="progress-item">
+                                <span>Fat</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="fat-progress"></div>
+                                </div>
+                                <span id="fat-text">0g / 65g</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -511,43 +540,6 @@
         </div>
         
         <div id="analytics-tab" class="tab-content">
-            <!-- Daily Summary -->
-            <div class="card">
-                <h2>📊 Today's Summary</h2>
-                <div id="daily-nutrition-summary">
-                    <div class="nutrition-progress">
-                        <div class="progress-item">
-                            <span>Calories</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="calories-progress"></div>
-                            </div>
-                            <span id="calories-text">0 / 2000</span>
-                        </div>
-                        <div class="progress-item">
-                            <span>Protein</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="protein-progress"></div>
-                            </div>
-                            <span id="protein-text">0g / 150g</span>
-                        </div>
-                        <div class="progress-item">
-                            <span>Carbs</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="carbs-progress"></div>
-                            </div>
-                            <span id="carbs-text">0g / 250g</span>
-                        </div>
-                        <div class="progress-item">
-                            <span>Fat</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="fat-progress"></div>
-                            </div>
-                            <span id="fat-text">0g / 65g</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Goals -->
             <div class="card">
                 <h2>🎯 Daily Goals</h2>
@@ -673,6 +665,8 @@
                 initHistoryDatePicker();
                 loadMealHistory();
                 updateDateDisplay();
+                // Load nutrition progress for the current date
+                calculateTodaysNutrition();
             } else if (tabName === 'analytics') {
                 loadAnalytics();
             }
@@ -1310,7 +1304,6 @@
         // Load meal history from Supabase
         async function loadMealHistory() {
             const historyDiv = document.getElementById('meal-history');
-            const dailyCaloriesSpan = document.getElementById('daily-calories');
             
             historyDiv.innerHTML = `
                 <div class="loading">
@@ -1321,7 +1314,6 @@
             
             if (!supabase) {
                 historyDiv.innerHTML = '<p>Database not connected. Please configure Supabase credentials.</p>';
-                dailyCaloriesSpan.textContent = '0';
                 return;
             }
             
@@ -1341,13 +1333,11 @@
                 if (error) {
                     console.error('Error loading meals:', error);
                     historyDiv.innerHTML = `<p>Error loading meals: ${error.message}</p>`;
-                    dailyCaloriesSpan.textContent = '0';
                     return;
                 }
                 
                 if (!meals || meals.length === 0) {
                     historyDiv.innerHTML = '<p>No meals logged for this date.</p>';
-                    dailyCaloriesSpan.textContent = '0';
                     return;
                 }
                 
@@ -1390,12 +1380,13 @@
                 });
                 
                 historyDiv.innerHTML = mealsHTML;
-                dailyCaloriesSpan.textContent = totalCalories;
+                
+                // Update nutrition progress bars
+                calculateTodaysNutrition();
                 
             } catch (error) {
                 console.error('Error loading meals:', error);
                 historyDiv.innerHTML = `<p>Error loading meals: ${error.message}</p>`;
-                dailyCaloriesSpan.textContent = '0';
             }
         }
         
