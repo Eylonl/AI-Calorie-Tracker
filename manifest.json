@@ -1,19 +1,28 @@
 {
-  "name": "AI Calorie Tracker",
+  "name": "CalorieAI - Smart Nutrition Tracker",
   "short_name": "CalorieAI",
-  "description": "AI-powered calorie tracking with photo analysis",
+  "description": "AI-powered calorie and nutrition tracking with photo analysis",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#667eea",
+  "background_color": "#ffffff",
   "theme_color": "#667eea",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍽️%3C/text%3E%3C/svg%3E",
-      "sizes": "any",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23667eea'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-size='80'%3E🍽️%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23667eea'/%3E%3Ctext x='256' y='340' text-anchor='middle' font-size='200'%3E🍽️%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
       "type": "image/svg+xml"
     }
   ],
-  "categories": ["health", "lifestyle", "food"],
-  "screenshots": []
+  "categories": ["health", "lifestyle", "food", "medical"],
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "related_applications": []
 }
