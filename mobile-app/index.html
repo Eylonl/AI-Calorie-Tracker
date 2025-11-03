@@ -605,6 +605,12 @@
         
         // Initialize Supabase
         async function initSupabase() {
+            console.log('DEBUG - Config check:', {
+                SUPABASE_ENABLED: window.CONFIG.FEATURES.SUPABASE_ENABLED,
+                SUPABASE_URL: window.CONFIG.SUPABASE_URL,
+                SUPABASE_ANON_KEY: window.CONFIG.SUPABASE_ANON_KEY ? 'SET' : 'NOT_SET'
+            });
+            
             if (!window.CONFIG.FEATURES.SUPABASE_ENABLED || !window.CONFIG.SUPABASE_URL || window.CONFIG.SUPABASE_URL === 'https://your-project.supabase.co') {
                 console.log('Supabase not configured - running in demo mode');
                 console.log('To enable Supabase: Add your credentials to mobile-app/config.js and set SUPABASE_ENABLED: true');

@@ -1,11 +1,12 @@
 // Service Worker for CalorieAI PWA
-const CACHE_NAME = 'calorie-ai-v1';
+const CACHE_NAME = 'calorie-ai-v2'; // Updated version to force cache refresh
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './config.js',
+  './icon-192.svg',
+  './icon-512.svg'
 ];
 
 // Install event
