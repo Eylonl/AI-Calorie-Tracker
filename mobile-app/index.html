@@ -429,11 +429,11 @@
                 <input type="file" id="camera" class="camera-input" accept="image/*" capture="environment" multiple="false">
                 <input type="file" id="gallery" class="camera-input" accept="image/*" multiple="false">
                 <div class="photo-buttons">
-                    <button class="button" onclick="takePhoto()">
+                    <button class="button" onclick="useWebCamera()">
                         📷 Take Photo
                     </button>
                     <button class="button" onclick="chooseFromGallery()">
-                        🖼️ Choose from Gallery
+                        🖼️ Browse Photos
                     </button>
                 </div>
                 
@@ -712,20 +712,7 @@
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
         
-        // Enhanced photo capture functions
-        function takePhoto() {
-            const cameraInput = document.getElementById('camera');
-            
-            // Force camera capture on mobile devices
-            if (isMobileDevice()) {
-                // Set capture attribute dynamically for better mobile support
-                cameraInput.setAttribute('capture', 'environment');
-                cameraInput.setAttribute('accept', 'image/*');
-            }
-            
-            cameraInput.click();
-        }
-        
+        // Photo capture functions
         function chooseFromGallery() {
             document.getElementById('gallery').click();
         }
