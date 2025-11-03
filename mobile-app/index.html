@@ -166,6 +166,113 @@
             display: block;
         }
         
+        /* New styles for enhanced functionality */
+        .meal-type-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .meal-type-btn {
+            padding: 0.8rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .meal-type-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .photo-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+        
+        .food-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .food-item input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+        
+        .date-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .date-nav button {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .daily-summary {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .total-calories {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .mini-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .calendar-day.today {
+            background: #667eea;
+            color: white;
+        }
+        
+        .calendar-day.has-meals {
+            background: #e6fffa;
+            border-color: #38b2ac;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 0.5rem;
@@ -173,6 +280,14 @@
             
             .card {
                 padding: 1rem;
+            }
+            
+            .meal-type-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .photo-buttons {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -190,34 +305,89 @@
         </div>
         
         <div id="log-tab" class="tab-content active">
+            <!-- Meal Type Selection -->
             <div class="card">
-                <h2>📸 Log Your Meal</h2>
+                <h2>🍽️ Meal Type</h2>
+                <div class="meal-type-buttons">
+                    <button class="meal-type-btn active" data-type="Breakfast">🌅 Breakfast</button>
+                    <button class="meal-type-btn" data-type="Lunch">☀️ Lunch</button>
+                    <button class="meal-type-btn" data-type="Dinner">🌙 Dinner</button>
+                    <button class="meal-type-btn" data-type="Snack">🍿 Snack</button>
+                </div>
+            </div>
+
+            <!-- Photo Upload -->
+            <div class="card">
+                <h2>📸 Add Photo</h2>
                 <input type="file" id="camera" class="camera-input" accept="image/*" capture="environment">
-                <button class="button" onclick="document.getElementById('camera').click()">
-                    📷 Take Photo
-                </button>
+                <input type="file" id="gallery" class="camera-input" accept="image/*">
+                <div class="photo-buttons">
+                    <button class="button" onclick="document.getElementById('camera').click()">
+                        📷 Take Photo
+                    </button>
+                    <button class="button" onclick="document.getElementById('gallery').click()">
+                        🖼️ Choose from Gallery
+                    </button>
+                </div>
                 <img id="photo-preview" class="photo-preview" style="display: none;">
                 <button id="analyze-btn" class="button" style="display: none;" onclick="analyzeMeal()">
                     🤖 Analyze with AI
                 </button>
-                <div id="analysis-result" style="display: none;"></div>
             </div>
+
+            <!-- Manual Entry -->
+            <div class="card">
+                <h2>✏️ Manual Entry</h2>
+                <button class="button" onclick="showManualEntry()">
+                    ➕ Add Food Manually
+                </button>
+                <div id="manual-entry" style="display: none;">
+                    <div id="food-items"></div>
+                    <button class="button" onclick="addFoodItem()">+ Add Another Food</button>
+                </div>
+            </div>
+
+            <!-- Analysis/Results -->
+            <div id="analysis-result" style="display: none;"></div>
         </div>
         
         <div id="history-tab" class="tab-content">
+            <!-- Date Navigation -->
             <div class="card">
-                <h2>📊 Meal History</h2>
-                <div id="meal-history">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        Loading your meals...
+                <div class="date-nav">
+                    <button onclick="changeDate(-1)">← Previous</button>
+                    <h2 id="current-date">Today</h2>
+                    <button onclick="changeDate(1)">Next →</button>
+                </div>
+                <div class="daily-summary">
+                    <div class="total-calories">
+                        <span id="daily-calories">0</span> calories
                     </div>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div class="card">
+                <h3>📅 Quick Date Selection</h3>
+                <div id="mini-calendar"></div>
+            </div>
+
+            <!-- Daily Meals -->
+            <div id="meal-history">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading your meals...
                 </div>
             </div>
         </div>
     </div>
     
     <script>
+        // Global variables
+        let currentDate = new Date();
+        let selectedMealType = 'Breakfast';
+        let currentPhoto = null;
+        
         // Tab switching
         function showTab(tabName) {
             // Hide all tabs
@@ -234,13 +404,30 @@
             
             if (tabName === 'history') {
                 loadMealHistory();
+                updateDateDisplay();
+                generateMiniCalendar();
             }
         }
         
-        // Camera functionality
-        document.getElementById('camera').addEventListener('change', function(e) {
+        // Meal type selection
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.meal-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.meal-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedMealType = this.dataset.type;
+                });
+            });
+        });
+        
+        // Camera and gallery functionality
+        document.getElementById('camera').addEventListener('change', handlePhotoUpload);
+        document.getElementById('gallery').addEventListener('change', handlePhotoUpload);
+        
+        function handlePhotoUpload(e) {
             const file = e.target.files[0];
             if (file) {
+                currentPhoto = file;
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const preview = document.getElementById('photo-preview');
@@ -250,7 +437,38 @@
                 };
                 reader.readAsDataURL(file);
             }
-        });
+        }
+        
+        // Manual entry functions
+        function showManualEntry() {
+            const manualEntry = document.getElementById('manual-entry');
+            manualEntry.style.display = 'block';
+            addFoodItem(); // Add first food item
+        }
+        
+        function addFoodItem() {
+            const foodItems = document.getElementById('food-items');
+            const itemId = 'food-' + Date.now();
+            
+            const foodItem = document.createElement('div');
+            foodItem.className = 'food-item';
+            foodItem.innerHTML = `
+                <input type="text" placeholder="Food name" id="${itemId}-name">
+                <input type="text" placeholder="Portion size (e.g., 1 cup, 150g)" id="${itemId}-portion">
+                <div class="nutrition-grid">
+                    <input type="number" placeholder="Calories" id="${itemId}-calories">
+                    <input type="number" placeholder="Protein (g)" id="${itemId}-protein" step="0.1">
+                    <input type="number" placeholder="Carbs (g)" id="${itemId}-carbs" step="0.1">
+                    <input type="number" placeholder="Fat (g)" id="${itemId}-fat" step="0.1">
+                    <input type="number" placeholder="Fiber (g)" id="${itemId}-fiber" step="0.1">
+                    <input type="number" placeholder="Sugar (g)" id="${itemId}-sugar" step="0.1">
+                </div>
+                <input type="number" placeholder="Sodium (mg)" id="${itemId}-sodium" step="0.1">
+                <button type="button" onclick="this.parentElement.remove()" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;">Remove</button>
+            `;
+            
+            foodItems.appendChild(foodItem);
+        }
         
         // Mock AI analysis (replace with actual API call)
         function analyzeMeal() {
@@ -296,33 +514,152 @@
             document.getElementById('camera').value = '';
         }
         
+        // Date navigation
+        function changeDate(days) {
+            currentDate.setDate(currentDate.getDate() + days);
+            updateDateDisplay();
+            loadMealHistory();
+        }
+        
+        function updateDateDisplay() {
+            const dateElement = document.getElementById('current-date');
+            const today = new Date();
+            
+            if (currentDate.toDateString() === today.toDateString()) {
+                dateElement.textContent = 'Today';
+            } else if (currentDate.toDateString() === new Date(today.getTime() - 86400000).toDateString()) {
+                dateElement.textContent = 'Yesterday';
+            } else {
+                dateElement.textContent = currentDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+            }
+        }
+        
+        // Generate mini calendar
+        function generateMiniCalendar() {
+            const calendarDiv = document.getElementById('mini-calendar');
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            let calendarHTML = '';
+            
+            // Day headers
+            const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+            dayHeaders.forEach(day => {
+                calendarHTML += `<div style="font-weight: bold; text-align: center; padding: 0.25rem;">${day}</div>`;
+            });
+            
+            // Empty cells for days before month starts
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                calendarHTML += '<div></div>';
+            }
+            
+            // Days of the month
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(today.getFullYear(), today.getMonth(), day);
+                const isToday = date.toDateString() === today.toDateString();
+                const isSelected = date.toDateString() === currentDate.toDateString();
+                
+                let classes = 'calendar-day';
+                if (isToday) classes += ' today';
+                if (Math.random() > 0.7) classes += ' has-meals'; // Mock data
+                
+                calendarHTML += `
+                    <div class="${classes}" onclick="selectDate(${day})" 
+                         style="${isSelected ? 'border: 2px solid #667eea;' : ''}">
+                        ${day}
+                    </div>
+                `;
+            }
+            
+            calendarDiv.innerHTML = calendarHTML;
+        }
+        
+        function selectDate(day) {
+            const today = new Date();
+            currentDate = new Date(today.getFullYear(), today.getMonth(), day);
+            updateDateDisplay();
+            generateMiniCalendar();
+            loadMealHistory();
+        }
+        
         // Load meal history
         function loadMealHistory() {
             const historyDiv = document.getElementById('meal-history');
+            const dailyCaloriesSpan = document.getElementById('daily-calories');
             
             // Simulate loading
+            historyDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading meals for ${currentDate.toLocaleDateString()}...
+                </div>
+            `;
+            
             setTimeout(() => {
-                historyDiv.innerHTML = `
-                    <div class="meal-item">
-                        <h3>🥗 Lunch - Today 12:30 PM</h3>
-                        <p><strong>350 calories</strong></p>
-                        <div class="nutrition-info">
-                            <div>Protein: 28g</div>
-                            <div>Carbs: 12g</div>
-                            <div>Fat: 18g</div>
+                // Mock data based on selected date
+                const mockMeals = [
+                    {
+                        type: '🍳 Breakfast',
+                        time: '8:00 AM',
+                        calories: 420,
+                        protein: 22,
+                        carbs: 35,
+                        fat: 24,
+                        foods: ['Scrambled eggs', 'Toast', 'Orange juice']
+                    },
+                    {
+                        type: '🥗 Lunch', 
+                        time: '12:30 PM',
+                        calories: 350,
+                        protein: 28,
+                        carbs: 12,
+                        fat: 18,
+                        foods: ['Grilled chicken salad', 'Olive oil dressing']
+                    }
+                ];
+                
+                let totalCalories = 0;
+                let mealsHTML = '';
+                
+                mockMeals.forEach(meal => {
+                    totalCalories += meal.calories;
+                    mealsHTML += `
+                        <div class="meal-item">
+                            <h3>${meal.type} - ${meal.time}</h3>
+                            <p><strong>${meal.calories} calories</strong></p>
+                            <div class="nutrition-info">
+                                <div>Protein: ${meal.protein}g</div>
+                                <div>Carbs: ${meal.carbs}g</div>
+                                <div>Fat: ${meal.fat}g</div>
+                            </div>
+                            <p><strong>Foods:</strong> ${meal.foods.join(', ')}</p>
+                            <div style="margin-top: 0.5rem;">
+                                <button onclick="editMeal()" style="background: #667eea; color: white; border: none; padding: 0.5rem; border-radius: 4px; margin-right: 0.5rem;">✏️ Edit</button>
+                                <button onclick="deleteMeal()" style="background: #e53e3e; color: white; border: none; padding: 0.5rem; border-radius: 4px;">🗑️ Delete</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="meal-item">
-                        <h3>🍳 Breakfast - Today 8:00 AM</h3>
-                        <p><strong>420 calories</strong></p>
-                        <div class="nutrition-info">
-                            <div>Protein: 22g</div>
-                            <div>Carbs: 35g</div>
-                            <div>Fat: 24g</div>
-                        </div>
-                    </div>
-                `;
+                    `;
+                });
+                
+                historyDiv.innerHTML = mealsHTML || '<p>No meals logged for this date.</p>';
+                dailyCaloriesSpan.textContent = totalCalories;
             }, 1000);
+        }
+        
+        function editMeal() {
+            alert('Edit functionality - would open edit form');
+        }
+        
+        function deleteMeal() {
+            if (confirm('Delete this meal?')) {
+                alert('Meal deleted!');
+                loadMealHistory();
+            }
         }
         
         // Service Worker registration
