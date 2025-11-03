@@ -41,3 +41,17 @@ Thumbs.db
 # Data files
 meal_history.json
 *.log
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Capacitor
+ios/App/Pods/
+ios/App/App/public/
+android/app/src/main/assets/public/
+
+# Build outputs
+dist/
