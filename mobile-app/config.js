@@ -14,13 +14,13 @@ const CONFIG = {
     APP_NAME: 'CalorieAI',
     VERSION: '1.0.0',
     
-    // Vercel API Configuration (update with your actual Vercel URL)
-    VERCEL_API_URL: 'https://your-project-name.vercel.app', // Replace with your Vercel URL
+    // Vercel API Configuration
+    VERCEL_API_URL: 'https://ai-calorie-tracker-lea0t96hd-eylonls-projects.vercel.app',
     
     // Features
     FEATURES: {
         SUPABASE_ENABLED: true,
-        AI_ANALYSIS_ENABLED: true, // Will be enabled once Vercel is deployed
+        AI_ANALYSIS_ENABLED: true, // AI analysis enabled via Vercel
         OFFLINE_MODE: true,
         USE_BACKEND_API: true,  // Use Vercel serverless functions
         USE_VERCEL_API: true    // Use Vercel instead of Streamlit
