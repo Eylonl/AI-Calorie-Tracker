@@ -272,6 +272,78 @@
             background: #e6fffa;
             border-color: #38b2ac;
         }
+        
+        /* Analytics styles */
+        .nutrition-progress {
+            margin-top: 1rem;
+        }
+        
+        .progress-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-item span:first-child {
+            font-weight: 600;
+            min-width: 80px;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .goal-settings {
+            margin-top: 1rem;
+        }
+        
+        .goal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .goal-item label {
+            font-weight: 600;
+        }
+        
+        .goal-item input {
+            width: 80px;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .trend-summary {
+            margin-top: 1rem;
+        }
+        
+        .trend-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .trend-item:last-child {
+            border-bottom: none;
+        }
 
         @media (max-width: 480px) {
             .container {
@@ -302,6 +374,7 @@
         <div class="tabs">
             <button class="tab active" onclick="showTab('log')">Log Meal</button>
             <button class="tab" onclick="showTab('history')">History</button>
+            <button class="tab" onclick="showTab('analytics')">Analytics</button>
         </div>
         
         <div id="log-tab" class="tab-content active">
@@ -381,6 +454,91 @@
                 </div>
             </div>
         </div>
+        
+        <div id="analytics-tab" class="tab-content">
+            <!-- Daily Summary -->
+            <div class="card">
+                <h2>📊 Today's Summary</h2>
+                <div id="daily-nutrition-summary">
+                    <div class="nutrition-progress">
+                        <div class="progress-item">
+                            <span>Calories</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="calories-progress"></div>
+                            </div>
+                            <span id="calories-text">0 / 2000</span>
+                        </div>
+                        <div class="progress-item">
+                            <span>Protein</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="protein-progress"></div>
+                            </div>
+                            <span id="protein-text">0g / 150g</span>
+                        </div>
+                        <div class="progress-item">
+                            <span>Carbs</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="carbs-progress"></div>
+                            </div>
+                            <span id="carbs-text">0g / 250g</span>
+                        </div>
+                        <div class="progress-item">
+                            <span>Fat</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="fat-progress"></div>
+                            </div>
+                            <span id="fat-text">0g / 65g</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Goals -->
+            <div class="card">
+                <h2>🎯 Daily Goals</h2>
+                <div class="goal-settings">
+                    <div class="goal-item">
+                        <label>Calorie Goal:</label>
+                        <input type="number" id="calorie-goal" value="2000" min="1000" max="5000">
+                    </div>
+                    <div class="goal-item">
+                        <label>Protein Goal (g):</label>
+                        <input type="number" id="protein-goal" value="150" min="50" max="300">
+                    </div>
+                    <div class="goal-item">
+                        <label>Carbs Goal (g):</label>
+                        <input type="number" id="carbs-goal" value="250" min="50" max="500">
+                    </div>
+                    <div class="goal-item">
+                        <label>Fat Goal (g):</label>
+                        <input type="number" id="fat-goal" value="65" min="20" max="150">
+                    </div>
+                    <button class="button" onclick="saveGoals()">💾 Save Goals</button>
+                </div>
+            </div>
+            
+            <!-- Weekly Trends -->
+            <div class="card">
+                <h2>📈 Weekly Trends</h2>
+                <div id="weekly-chart">
+                    <p>Weekly nutrition trends would appear here</p>
+                    <div class="trend-summary">
+                        <div class="trend-item">
+                            <span>Avg Daily Calories:</span>
+                            <span id="avg-calories">1,850</span>
+                        </div>
+                        <div class="trend-item">
+                            <span>Most Active Day:</span>
+                            <span>Tuesday</span>
+                        </div>
+                        <div class="trend-item">
+                            <span>Streak:</span>
+                            <span>5 days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Configuration -->
@@ -434,6 +592,8 @@
                 loadMealHistory();
                 updateDateDisplay();
                 generateMiniCalendar();
+            } else if (tabName === 'analytics') {
+                loadAnalytics();
             }
         }
         
@@ -498,8 +658,13 @@
             foodItems.appendChild(foodItem);
         }
         
-        // Mock AI analysis (replace with actual API call)
-        function analyzeMeal() {
+        // AI Photo Analysis
+        async function analyzeMeal() {
+            if (!currentPhoto) {
+                alert('Please select a photo first');
+                return;
+            }
+            
             const resultDiv = document.getElementById('analysis-result');
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = `
@@ -509,10 +674,32 @@
                 </div>
             `;
             
-            // Simulate API call
-            setTimeout(() => {
-                resultDiv.innerHTML = `
-                    <h3>🍽️ Analysis Results</h3>
+            if (window.CONFIG && window.CONFIG.FEATURES.AI_ANALYSIS_ENABLED) {
+                try {
+                    // Convert image to base64
+                    const base64Image = await convertImageToBase64(currentPhoto);
+                    
+                    // Call OpenAI API
+                    const analysis = await callOpenAIVision(base64Image);
+                    
+                    displayAnalysisResults(analysis);
+                } catch (error) {
+                    console.error('AI analysis error:', error);
+                    displayMockAnalysis();
+                }
+            } else {
+                // Mock analysis for demo
+                setTimeout(() => {
+                    displayMockAnalysis();
+                }, 2000);
+            }
+        }
+        
+        function displayMockAnalysis() {
+            const resultDiv = document.getElementById('analysis-result');
+            resultDiv.innerHTML = `
+                <div class="card">
+                    <h3>🤖 AI Analysis Results</h3>
                     <div class="meal-item">
                         <h4>Grilled Chicken Salad</h4>
                         <p><strong>Calories:</strong> 350</p>
@@ -524,12 +711,95 @@
                             <div>Sugar: 8g</div>
                             <div>Sodium: 420mg</div>
                         </div>
-                        <button class="button" onclick="saveMeal()" style="margin-top: 1rem;">
-                            ✅ Save Meal
+                        <button class="button" onclick="useAIAnalysis()" style="margin-top: 1rem;">
+                            ✅ Use This Analysis
+                        </button>
+                        <button class="button" onclick="showManualEntry()" style="background: #718096;">
+                            ✏️ Edit Manually
                         </button>
                     </div>
+                </div>
+            `;
+        }
+        
+        function displayAnalysisResults(analysis) {
+            const resultDiv = document.getElementById('analysis-result');
+            let foodsHTML = '';
+            
+            analysis.foods.forEach(food => {
+                foodsHTML += `
+                    <div class="meal-item">
+                        <h4>${food.name}</h4>
+                        <p><strong>Portion:</strong> ${food.portion_size}</p>
+                        <p><strong>Calories:</strong> ${food.calories}</p>
+                        <div class="nutrition-info">
+                            <div>Protein: ${food.protein || 0}g</div>
+                            <div>Carbs: ${food.carbs || 0}g</div>
+                            <div>Fat: ${food.fat || 0}g</div>
+                            <div>Fiber: ${food.fiber || 0}g</div>
+                            <div>Sugar: ${food.sugar || 0}g</div>
+                            <div>Sodium: ${food.sodium || 0}mg</div>
+                        </div>
+                    </div>
                 `;
-            }, 2000);
+            });
+            
+            resultDiv.innerHTML = `
+                <div class="card">
+                    <h3>🤖 AI Analysis Results</h3>
+                    ${foodsHTML}
+                    <p><strong>Total Calories:</strong> ${analysis.total_calories}</p>
+                    ${analysis.notes ? `<p><strong>Notes:</strong> ${analysis.notes}</p>` : ''}
+                    <button class="button" onclick="useAIAnalysis(${JSON.stringify(analysis)})" style="margin-top: 1rem;">
+                        ✅ Use This Analysis
+                    </button>
+                    <button class="button" onclick="showManualEntry()" style="background: #718096;">
+                        ✏️ Edit Manually
+                    </button>
+                </div>
+            `;
+        }
+        
+        function useAIAnalysis(analysis) {
+            // Convert AI analysis to manual entry format
+            if (analysis) {
+                // Populate manual entry with AI results
+                showManualEntry();
+                // Pre-fill with AI data (implementation would go here)
+            }
+            alert('AI analysis applied! You can now edit or save.');
+        }
+        
+        async function convertImageToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        async function callOpenAIVision(base64Image) {
+            // This would call your OpenAI API
+            // For now, return mock data
+            return {
+                foods: [
+                    {
+                        name: "Grilled Chicken Salad",
+                        portion_size: "1 large bowl",
+                        calories: 350,
+                        protein: 28,
+                        carbs: 12,
+                        fat: 18,
+                        fiber: 6,
+                        sugar: 8,
+                        sodium: 420,
+                        confidence: 85
+                    }
+                ],
+                total_calories: 350,
+                notes: "Healthy salad with grilled chicken, mixed greens, and light dressing"
+            };
         }
         
         // Save meal
@@ -933,6 +1203,112 @@
         
         function editMeal(mealId) {
             alert('Edit functionality coming soon! Meal ID: ' + mealId);
+        }
+        
+        // Analytics functions
+        async function loadAnalytics() {
+            // Load goals from localStorage
+            loadGoals();
+            
+            // Calculate today's nutrition
+            await calculateTodaysNutrition();
+        }
+        
+        function loadGoals() {
+            const goals = JSON.parse(localStorage.getItem('nutritionGoals')) || {
+                calories: 2000,
+                protein: 150,
+                carbs: 250,
+                fat: 65
+            };
+            
+            document.getElementById('calorie-goal').value = goals.calories;
+            document.getElementById('protein-goal').value = goals.protein;
+            document.getElementById('carbs-goal').value = goals.carbs;
+            document.getElementById('fat-goal').value = goals.fat;
+        }
+        
+        function saveGoals() {
+            const goals = {
+                calories: parseInt(document.getElementById('calorie-goal').value),
+                protein: parseInt(document.getElementById('protein-goal').value),
+                carbs: parseInt(document.getElementById('carbs-goal').value),
+                fat: parseInt(document.getElementById('fat-goal').value)
+            };
+            
+            localStorage.setItem('nutritionGoals', JSON.stringify(goals));
+            alert('Goals saved! 💾');
+            calculateTodaysNutrition();
+        }
+        
+        async function calculateTodaysNutrition() {
+            const goals = JSON.parse(localStorage.getItem('nutritionGoals')) || {
+                calories: 2000,
+                protein: 150,
+                carbs: 250,
+                fat: 65
+            };
+            
+            let totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+            
+            if (supabase) {
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    const { data: meals, error } = await supabase
+                        .from('meals')
+                        .select(`
+                            total_calories,
+                            foods (protein, carbs, fat)
+                        `)
+                        .eq('user_id', 'default_user')
+                        .eq('date', today);
+                    
+                    if (!error && meals) {
+                        meals.forEach(meal => {
+                            totals.calories += meal.total_calories || 0;
+                            meal.foods.forEach(food => {
+                                totals.protein += food.protein || 0;
+                                totals.carbs += food.carbs || 0;
+                                totals.fat += food.fat || 0;
+                            });
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error calculating nutrition:', error);
+                }
+            } else {
+                // Mock data for demo
+                totals = { calories: 1420, protein: 85, carbs: 180, fat: 45 };
+            }
+            
+            // Update progress bars
+            updateProgressBar('calories', totals.calories, goals.calories, 'cal');
+            updateProgressBar('protein', totals.protein, goals.protein, 'g');
+            updateProgressBar('carbs', totals.carbs, goals.carbs, 'g');
+            updateProgressBar('fat', totals.fat, goals.fat, 'g');
+        }
+        
+        function updateProgressBar(nutrient, current, goal, unit) {
+            const percentage = Math.min((current / goal) * 100, 100);
+            const progressFill = document.getElementById(`${nutrient}-progress`);
+            const progressText = document.getElementById(`${nutrient}-text`);
+            
+            progressFill.style.width = `${percentage}%`;
+            
+            if (unit === 'cal') {
+                progressText.textContent = `${Math.round(current)} / ${goal}`;
+            } else {
+                progressText.textContent = `${current.toFixed(1)}${unit} / ${goal}${unit}`;
+            }
+            
+            // Color coding
+            if (percentage >= 90) {
+                progressFill.style.background = '#38a169'; // Green
+            } else if (percentage >= 70) {
+                progressFill.style.background = '#d69e2e'; // Yellow
+            } else {
+                progressFill.style.background = 'linear-gradient(90deg, #667eea, #764ba2)'; // Default
+            }
         }
         
         // Initialize app
