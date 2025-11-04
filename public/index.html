@@ -938,6 +938,19 @@
             `;
             
             foodItems.appendChild(foodItem);
+            
+            // Store original portion and nutrition values for scaling if foodData provided
+            if (foodData) {
+                const portionInput = document.getElementById(`${itemId}-portion`);
+                portionInput.dataset.originalPortion = foodData.portion_size || '1 serving';
+                portionInput.dataset.originalCalories = foodData.calories || 0;
+                portionInput.dataset.originalProtein = foodData.protein || 0;
+                portionInput.dataset.originalCarbs = foodData.carbs || 0;
+                portionInput.dataset.originalFat = foodData.fat || 0;
+                portionInput.dataset.originalFiber = foodData.fiber || 0;
+                portionInput.dataset.originalSugar = foodData.sugar || 0;
+                portionInput.dataset.originalSodium = foodData.sodium || 0;
+            }
         }
         
         // Smart Fill Nutrition
@@ -993,6 +1006,17 @@
                     document.getElementById(`${itemId}-sugar`).value = firstFood.sugar || 0;
                     document.getElementById(`${itemId}-sodium`).value = firstFood.sodium || 0;
                     
+                    // Store original portion and nutrition values for scaling
+                    const portionInput = document.getElementById(`${itemId}-portion`);
+                    portionInput.dataset.originalPortion = firstFood.portion_size || '1 serving';
+                    portionInput.dataset.originalCalories = firstFood.calories || 0;
+                    portionInput.dataset.originalProtein = firstFood.protein || 0;
+                    portionInput.dataset.originalCarbs = firstFood.carbs || 0;
+                    portionInput.dataset.originalFat = firstFood.fat || 0;
+                    portionInput.dataset.originalFiber = firstFood.fiber || 0;
+                    portionInput.dataset.originalSugar = firstFood.sugar || 0;
+                    portionInput.dataset.originalSodium = firstFood.sodium || 0;
+                    
                     // Create additional food items for remaining foods
                     for (let i = 1; i < analysis.foods.length; i++) {
                         addFoodItem(analysis.foods[i]);
@@ -1028,53 +1052,50 @@
                 return;
             }
             
-            // Get current nutrition values
-            const currentCalories = parseFloat(document.getElementById(`${itemId}-calories`).value) || 0;
-            const currentProtein = parseFloat(document.getElementById(`${itemId}-protein`).value) || 0;
-            const currentCarbs = parseFloat(document.getElementById(`${itemId}-carbs`).value) || 0;
-            const currentFat = parseFloat(document.getElementById(`${itemId}-fat`).value) || 0;
-            const currentFiber = parseFloat(document.getElementById(`${itemId}-fiber`).value) || 0;
-            const currentSugar = parseFloat(document.getElementById(`${itemId}-sugar`).value) || 0;
-            const currentSodium = parseFloat(document.getElementById(`${itemId}-sodium`).value) || 0;
-            
-            // Check if we have any nutrition data to scale
-            if (currentCalories === 0 && currentProtein === 0 && currentCarbs === 0 && currentFat === 0) {
-                alert('Please fill in some nutrition data first, then use recalculate to scale it');
+            // Check if we have stored original data
+            if (!portionInput.dataset.originalPortion) {
+                alert('No original nutrition data found. Please use Smart Fill first, or manually enter nutrition data.');
                 return;
             }
             
-            // Extract numeric value from portion (e.g., "2 cups" -> 2, "150g" -> 150)
-            const portionMatch = newPortion.match(/(\d+(?:\.\d+)?)/);
-            if (!portionMatch) {
+            // Get original portion and nutrition values from stored data
+            const originalPortion = portionInput.dataset.originalPortion;
+            const originalCalories = parseFloat(portionInput.dataset.originalCalories) || 0;
+            const originalProtein = parseFloat(portionInput.dataset.originalProtein) || 0;
+            const originalCarbs = parseFloat(portionInput.dataset.originalCarbs) || 0;
+            const originalFat = parseFloat(portionInput.dataset.originalFat) || 0;
+            const originalFiber = parseFloat(portionInput.dataset.originalFiber) || 0;
+            const originalSugar = parseFloat(portionInput.dataset.originalSugar) || 0;
+            const originalSodium = parseFloat(portionInput.dataset.originalSodium) || 0;
+            
+            // Extract numeric values from portions
+            const newPortionMatch = newPortion.match(/(\d+(?:\.\d+)?)/);
+            const originalPortionMatch = originalPortion.match(/(\d+(?:\.\d+)?)/);
+            
+            if (!newPortionMatch) {
                 alert('Please include a number in your portion size (e.g., "2 cups", "150g")');
                 return;
             }
             
-            const portionMultiplier = parseFloat(portionMatch[1]);
-            
-            // Ask user for the base portion this nutrition data represents
-            const basePortionStr = prompt(`Current nutrition values represent how much? (e.g., "1 cup", "100g")\n\nThis will help calculate the scaling factor.`);
-            if (!basePortionStr) return;
-            
-            const basePortionMatch = basePortionStr.match(/(\d+(?:\.\d+)?)/);
-            if (!basePortionMatch) {
-                alert('Please include a number (e.g., "1 cup", "100g")');
+            if (!originalPortionMatch) {
+                alert('Could not parse original portion size. Please use Smart Fill again.');
                 return;
             }
             
-            const basePortion = parseFloat(basePortionMatch[1]);
-            const scalingFactor = portionMultiplier / basePortion;
+            const newPortionNum = parseFloat(newPortionMatch[1]);
+            const originalPortionNum = parseFloat(originalPortionMatch[1]);
+            const scalingFactor = newPortionNum / originalPortionNum;
             
-            // Scale all nutrition values
-            document.getElementById(`${itemId}-calories`).value = Math.round(currentCalories * scalingFactor);
-            document.getElementById(`${itemId}-protein`).value = (currentProtein * scalingFactor).toFixed(1);
-            document.getElementById(`${itemId}-carbs`).value = (currentCarbs * scalingFactor).toFixed(1);
-            document.getElementById(`${itemId}-fat`).value = (currentFat * scalingFactor).toFixed(1);
-            document.getElementById(`${itemId}-fiber`).value = (currentFiber * scalingFactor).toFixed(1);
-            document.getElementById(`${itemId}-sugar`).value = (currentSugar * scalingFactor).toFixed(1);
-            document.getElementById(`${itemId}-sodium`).value = (currentSodium * scalingFactor).toFixed(1);
+            // Scale all nutrition values based on original data
+            document.getElementById(`${itemId}-calories`).value = Math.round(originalCalories * scalingFactor);
+            document.getElementById(`${itemId}-protein`).value = (originalProtein * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-carbs`).value = (originalCarbs * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-fat`).value = (originalFat * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-fiber`).value = (originalFiber * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-sugar`).value = (originalSugar * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-sodium`).value = (originalSodium * scalingFactor).toFixed(1);
             
-            alert(`✅ Nutrition scaled by ${scalingFactor.toFixed(2)}x for ${newPortion}!`);
+            alert(`✅ Nutrition scaled from "${originalPortion}" to "${newPortion}" (${scalingFactor.toFixed(2)}x)!`);
         }
         
         // AI Photo Analysis
