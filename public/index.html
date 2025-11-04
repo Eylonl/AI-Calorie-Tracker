@@ -978,20 +978,24 @@
                 const analysis = await response.json();
                 
                 if (analysis.foods && analysis.foods.length > 0) {
-                    const food = analysis.foods[0]; // Use first food item
+                    // Fill the current form with the first food item
+                    const firstFood = analysis.foods[0];
+                    document.getElementById(`${itemId}-name`).value = firstFood.name || description.split('-')[0].trim();
+                    document.getElementById(`${itemId}-portion`).value = firstFood.portion_size || '1 serving';
+                    document.getElementById(`${itemId}-calories`).value = firstFood.calories || 0;
+                    document.getElementById(`${itemId}-protein`).value = firstFood.protein || 0;
+                    document.getElementById(`${itemId}-carbs`).value = firstFood.carbs || 0;
+                    document.getElementById(`${itemId}-fat`).value = firstFood.fat || 0;
+                    document.getElementById(`${itemId}-fiber`).value = firstFood.fiber || 0;
+                    document.getElementById(`${itemId}-sugar`).value = firstFood.sugar || 0;
+                    document.getElementById(`${itemId}-sodium`).value = firstFood.sodium || 0;
                     
-                    // Fill in the nutrition fields
-                    document.getElementById(`${itemId}-name`).value = food.name || description.split('-')[0].trim();
-                    document.getElementById(`${itemId}-portion`).value = food.portion_size || '1 serving';
-                    document.getElementById(`${itemId}-calories`).value = food.calories || 0;
-                    document.getElementById(`${itemId}-protein`).value = food.protein || 0;
-                    document.getElementById(`${itemId}-carbs`).value = food.carbs || 0;
-                    document.getElementById(`${itemId}-fat`).value = food.fat || 0;
-                    document.getElementById(`${itemId}-fiber`).value = food.fiber || 0;
-                    document.getElementById(`${itemId}-sugar`).value = food.sugar || 0;
-                    document.getElementById(`${itemId}-sodium`).value = food.sodium || 0;
+                    // Create additional food items for remaining foods
+                    for (let i = 1; i < analysis.foods.length; i++) {
+                        addFoodItem(analysis.foods[i]);
+                    }
                     
-                    alert('✅ Nutrition info filled automatically!');
+                    alert(`✅ Created ${analysis.foods.length} food entries automatically!`);
                 } else {
                     alert('❌ Could not analyze the food description. Please fill manually.');
                 }
