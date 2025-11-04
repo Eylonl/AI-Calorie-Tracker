@@ -900,7 +900,10 @@
                 <input type="text" placeholder="Food name" id="${itemId}-name" value="${foodData?.name || ''}" style="width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">
                 
                 <label style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Portion Size:</label>
-                <input type="text" placeholder="Portion size (e.g., 1 cup, 150g)" id="${itemId}-portion" value="${foodData?.portion_size || ''}" style="width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <input type="text" placeholder="Portion size (e.g., 1 cup, 150g)" id="${itemId}-portion" value="${foodData?.portion_size || ''}" style="flex: 1; padding: 0.5rem;">
+                    <button type="button" onclick="recalculateNutrition('${itemId}')" style="background: #10b981; color: white; border: none; padding: 0.5rem 0.75rem; border-radius: 4px; white-space: nowrap;">📊 Recalculate</button>
+                </div>
                 
                 <div class="nutrition-grid">
                     <div>
@@ -1013,6 +1016,65 @@
                 smartFillBtn.innerHTML = '🤖 Smart Fill';
                 smartFillBtn.disabled = false;
             }
+        }
+        
+        // Recalculate nutrition based on portion size change
+        function recalculateNutrition(itemId) {
+            const portionInput = document.getElementById(`${itemId}-portion`);
+            const newPortion = portionInput.value.trim();
+            
+            if (!newPortion) {
+                alert('Please enter a portion size first');
+                return;
+            }
+            
+            // Get current nutrition values
+            const currentCalories = parseFloat(document.getElementById(`${itemId}-calories`).value) || 0;
+            const currentProtein = parseFloat(document.getElementById(`${itemId}-protein`).value) || 0;
+            const currentCarbs = parseFloat(document.getElementById(`${itemId}-carbs`).value) || 0;
+            const currentFat = parseFloat(document.getElementById(`${itemId}-fat`).value) || 0;
+            const currentFiber = parseFloat(document.getElementById(`${itemId}-fiber`).value) || 0;
+            const currentSugar = parseFloat(document.getElementById(`${itemId}-sugar`).value) || 0;
+            const currentSodium = parseFloat(document.getElementById(`${itemId}-sodium`).value) || 0;
+            
+            // Check if we have any nutrition data to scale
+            if (currentCalories === 0 && currentProtein === 0 && currentCarbs === 0 && currentFat === 0) {
+                alert('Please fill in some nutrition data first, then use recalculate to scale it');
+                return;
+            }
+            
+            // Extract numeric value from portion (e.g., "2 cups" -> 2, "150g" -> 150)
+            const portionMatch = newPortion.match(/(\d+(?:\.\d+)?)/);
+            if (!portionMatch) {
+                alert('Please include a number in your portion size (e.g., "2 cups", "150g")');
+                return;
+            }
+            
+            const portionMultiplier = parseFloat(portionMatch[1]);
+            
+            // Ask user for the base portion this nutrition data represents
+            const basePortionStr = prompt(`Current nutrition values represent how much? (e.g., "1 cup", "100g")\n\nThis will help calculate the scaling factor.`);
+            if (!basePortionStr) return;
+            
+            const basePortionMatch = basePortionStr.match(/(\d+(?:\.\d+)?)/);
+            if (!basePortionMatch) {
+                alert('Please include a number (e.g., "1 cup", "100g")');
+                return;
+            }
+            
+            const basePortion = parseFloat(basePortionMatch[1]);
+            const scalingFactor = portionMultiplier / basePortion;
+            
+            // Scale all nutrition values
+            document.getElementById(`${itemId}-calories`).value = Math.round(currentCalories * scalingFactor);
+            document.getElementById(`${itemId}-protein`).value = (currentProtein * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-carbs`).value = (currentCarbs * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-fat`).value = (currentFat * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-fiber`).value = (currentFiber * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-sugar`).value = (currentSugar * scalingFactor).toFixed(1);
+            document.getElementById(`${itemId}-sodium`).value = (currentSodium * scalingFactor).toFixed(1);
+            
+            alert(`✅ Nutrition scaled by ${scalingFactor.toFixed(2)}x for ${newPortion}!`);
         }
         
         // AI Photo Analysis
