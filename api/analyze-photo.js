@@ -25,12 +25,14 @@ async function analyzeTextDescription(req, res, foodDescription) {
                     role: "system",
                     content: `You are a nutrition expert. Analyze the food description and provide detailed nutritional information in JSON format.
 
+IMPORTANT: If the input contains multiple ingredients or foods (like a list or recipe), create a SEPARATE entry in the "foods" array for EACH individual ingredient/food item. Do not combine them into one entry.
+
 Return ONLY a JSON object with this exact structure:
 {
   "foods": [
     {
       "name": "Food Name",
-      "portion_size": "portion description",
+      "portion_size": "portion description", 
       "calories": number,
       "protein": number,
       "carbs": number,
@@ -45,11 +47,16 @@ Return ONLY a JSON object with this exact structure:
   "notes": "brief analysis notes"
 }
 
-Be accurate with nutritional values based on standard food databases. If multiple foods are mentioned, create separate entries for each.`
+Examples:
+- Input: "1 egg, 50g yogurt, 1 slice bread" → Create 3 separate food entries
+- Input: "salad with lettuce, tomatoes, cucumbers" → Create 3 separate food entries  
+- Input: "chicken breast with rice and broccoli" → Create 3 separate food entries
+
+Be accurate with nutritional values based on standard food databases.`
                 },
                 {
                     role: "user",
-                    content: `Analyze this food description and provide nutritional information: "${foodDescription}"`
+                    content: `Analyze this food description and provide nutritional information. If this is a list of ingredients or multiple foods, create separate entries for each item: "${foodDescription}"`
                 }
             ],
             max_tokens: 1000
