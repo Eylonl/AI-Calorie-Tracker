@@ -644,6 +644,13 @@
         let currentAnalysis = null;
         let supabase = null;
         
+        // Helper function to format date in local timezone as YYYY-MM-DD
+        function formatDateLocal(date) {
+            return date.getFullYear() + '-' + 
+                   String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(date.getDate()).padStart(2, '0');
+        }
+        
         // Initialize Supabase
         async function initSupabase() {
             console.log('DEBUG - Config check:', {
@@ -1432,7 +1439,7 @@
                 } else {
                     // Create new meal
                     const mealEntry = {
-                        date: selectedMealDate.toISOString().split('T')[0],
+                        date: formatDateLocal(selectedMealDate),
                         timestamp: new Date().toISOString(),
                         meal_type: selectedMealType,
                         total_calories: totalCalories,
@@ -1552,7 +1559,7 @@
             }
             
             try {
-                const dateStr = currentDate.toISOString().split('T')[0];
+                const dateStr = formatDateLocal(currentDate);
                 
                 const { data: meals, error } = await supabase
                     .from('meals')
@@ -2050,7 +2057,7 @@
             
             if (supabase) {
                 try {
-                    const dateStr = currentDate.toISOString().split('T')[0];
+                    const dateStr = formatDateLocal(currentDate);
                     const { data: meals, error } = await supabase
                         .from('meals')
                         .select(`
