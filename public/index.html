@@ -1205,7 +1205,7 @@
             try {
                 // Create meal entry (without foods array)
                 const mealEntry = {
-                    date: selectedMealDate.toISOString().split('T')[0],
+                    date: formatDateLocal(selectedMealDate),
                     timestamp: new Date().toISOString(),
                     meal_type: selectedMealType,
                     total_calories: analysis.total_calories || 0,
@@ -1679,7 +1679,7 @@
                 // Create meal record
                 const mealData = {
                     user_id: 'default_user',
-                    date: selectedMealDate.toISOString().split('T')[0],
+                    date: formatDateLocal(selectedMealDate),
                     meal_type: selectedMealType,
                     total_calories: totalCalories,
                     notes: '',
