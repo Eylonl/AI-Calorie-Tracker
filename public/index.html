@@ -731,10 +731,13 @@
             const mealDateInput = document.getElementById('meal-date');
             const today = new Date();
             mealDateInput.value = formatDateLocal(today);
+            selectedMealDate = today; // Ensure selectedMealDate is set to today
             
             // Listen for date changes
             mealDateInput.addEventListener('change', function() {
-                selectedMealDate = new Date(this.value);
+                // Create date in local timezone to avoid UTC conversion issues
+                const dateParts = this.value.split('-');
+                selectedMealDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
             });
         });
         
@@ -1525,7 +1528,9 @@
             
             // Listen for date changes
             historyDateInput.addEventListener('change', function() {
-                currentDate = new Date(this.value);
+                // Create date in local timezone to avoid UTC conversion issues
+                const dateParts = this.value.split('-');
+                currentDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                 updateDateDisplay();
                 loadMealHistory();
             });
