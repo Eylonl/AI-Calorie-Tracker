@@ -730,7 +730,7 @@
             // Initialize date input with today's date
             const mealDateInput = document.getElementById('meal-date');
             const today = new Date();
-            mealDateInput.value = today.toISOString().split('T')[0];
+            mealDateInput.value = formatDateLocal(today);
             
             // Listen for date changes
             mealDateInput.addEventListener('change', function() {
@@ -1520,7 +1520,7 @@
             
             // Set to current date if not already set
             if (!historyDateInput.value) {
-                historyDateInput.value = currentDate.toISOString().split('T')[0];
+                historyDateInput.value = formatDateLocal(currentDate);
             }
             
             // Listen for date changes
